@@ -1,0 +1,15 @@
+@import "tailwindcss";
+@config "../tailwind.config.ts";
+
+@source "../pages/**/*.{js,ts,jsx,tsx}";
+@source "../shared/**/*.{js,ts,jsx,tsx}";
+@source "../node_modules/preline/dist/*.js";
+
+@import "../node_modules/preline/variants.css";
+@plugin "@tailwindcss/forms";
+
+@import "@simonwep/pickr/dist/themes/classic.min.css";
+@import "@simonwep/pickr/dist/themes/monolith.min.css";
+@import "@simonwep/pickr/dist/themes/nano.min.css";
+
+@import "../public/assets/css/style.css";

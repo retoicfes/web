@@ -1,0 +1,163 @@
+/* Start Datatable  Styles */
+.tabulator .tabulator-header .tabulator-col {
+  @apply bg-white! border-gray-200! dark:bg-bodybg! dark:border-white/10!;
+}
+
+.tabulator
+  .tabulator-header
+  .tabulator-headers
+  .tabulator-col
+  .tabulator-col-content {
+  @apply px-6! py-3!;
+}
+
+.tabulator .tabulator-row .tabulator-cell {
+  @apply px-6! py-3!;
+}
+
+.tabulator .tabulator-row.tabulator-row-even {
+  @apply bg-gray-100! dark:bg-black/20!;
+}
+
+.tabulator-row.tabulator-selectable:hover {
+  @apply bg-gray-100! dark:bg-black/20!;
+}
+
+.tabulator .tabulator-row {
+  @apply border-t! border-gray-200! dark:border-white/10!;
+}
+
+.tabulator .tabulator-header {
+  @apply border-0! bg-white! dark:text-white! dark:bg-bodybg!;
+}
+
+.tabulator {
+  @apply border-0! bg-transparent!;
+}
+
+.tabulator-row .tabulator-cell {
+  @apply border-gray-200! dark:border-white/10!;
+}
+
+.tabulator .tabulator-row .tabulator-cell:nth-child(9) {
+  @apply border-e-0!;
+}
+
+.tabulator .tabulator-header .tabulator-col:nth-child(9) {
+  @apply border-e-0!;
+}
+
+.tabulator .tabulator-footer {
+  @apply border-gray-200! dark:text-defaulttextcolor/70! dark:border-white/10!;
+}
+
+.tabulator .tabulator-footer {
+  @apply bg-transparent! font-medium!;
+}
+
+.tabulator .tabulator-tableholder .tabulator-table {
+  @apply text-defaulttextcolor! dark:text-defaulttextcolor/70! bg-transparent!;
+}
+
+.tabulator-row {
+  @apply bg-transparent!;
+}
+
+.tabulator .tabulator-footer .tabulator-paginator {
+  @apply dark:text-white!;
+}
+
+select.tabulator-page-size {
+  @apply bg-[length:1rem_1rem]!;
+}
+
+.tabulator .tabulator-footer .tabulator-page-size {
+  @apply py-1! ps-3! pe-8! leading-[1.6]! text-xs! border-gray-200! dark:border-white/10! bg-transparent! rounded-md!;
+}
+
+.tabulator .tabulator-footer .tabulator-page {
+  @apply py-1! px-3! rounded-md! border-gray-200! dark:border-white/10! text-defaulttextcolor! dark:text-defaulttextcolor/70! bg-transparent!;
+}
+
+.tabulator .tabulator-footer .tabulator-page.active {
+  @apply text-primary!;
+}
+.tabulator .tabulator-footer .tabulator-page:not(.disabled):hover {
+  @apply text-primary! bg-primary/30!;
+}
+select.tabulator-page-size {
+  @apply filter!;
+  option {
+    @apply dark:bg-bodybg! border-gray-200! dark:border-white/10!;
+  }
+}
+.tabulator .tabulator-row .tabulator-cell.tabulator-row-handle {
+  @apply px-0!;
+}
+.sortable-data {
+  select {
+    @apply border-inherit! rounded-md! bg-[length:1rem_1rem]!;
+  }
+  .choices {
+    @apply mb-0!;
+  }
+}
+.tabulator .tabulator-col-resize-handle:last-child {
+  @apply hidden!;
+}
+
+.tabulator-row .tabulator-cell.tabulator-editing {
+  @apply border-0! border-gray-200! dark:border-white/10!;
+}
+.tabulator .tabulator-footer .tabulator-footer-contents {
+  @apply sm:flex-row! flex-col! space-y-2! sm:space-y-0! p-4!;
+}
+.tabulator .tabulator-footer .tabulator-page-size {
+  @apply sm:ps-3! ps-1! sm:pe-8! pe-4!;
+}
+.tabulator .tabulator-footer .tabulator-page {
+  @apply sm:px-3! px-1!;
+}
+.tabulator .tabulator-footer .tabulator-paginator {
+  label {
+    @apply hidden!;
+  }
+}
+@media screen and (max-width: 1024px) {
+  .tabulator-col,
+  .tabulator-cell {
+    @apply w-60!;
+  }
+}
+.tabulator
+  .tabulator-header
+  .tabulator-col.tabulator-sortable[aria-sort="ascending"]
+  .tabulator-col-content
+  .tabulator-col-sorter {
+  @apply text-defaulttextcolor dark:text-defaulttextcolor/70;
+}
+.tabulator
+  .tabulator-header
+  .tabulator-col.tabulator-sortable[aria-sort="ascending"]
+  .tabulator-col-content
+  .tabulator-col-sorter
+  .tabulator-arrow {
+  @apply border-b-gray-200 dark:border-b-white/10;
+}
+.tabulator
+  .tabulator-header
+  .tabulator-col.tabulator-sortable[aria-sort="descending"]
+  .tabulator-col-content
+  .tabulator-col-sorter
+  .tabulator-arrow {
+  @apply border-t-gray-200 dark:border-t-white/10;
+}
+.tabulator .tabulator-footer .tabulator-page-size {
+  @apply block! mb-2! w-full! sm:inline-block! sm:mb-0! sm:w-auto!;
+}
+.sortable-data{
+ .choices__list--dropdown .choices__item--selectable,.choices__list[aria-expanded] .choices__item--selectable {
+  @apply px-3!;
+ }
+}
+/* End Datatable  Styles */
