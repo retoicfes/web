@@ -1,36 +1,52 @@
 "use client";
 
 import { MobileShell } from "@/components/ui/MobileShell";
-import { getPlayerSession } from "@/lib/session";
-import { useEffect, useState } from "react";
+import { usePlayerSession } from "@/lib/use-player-session";
+import { useCallback, useEffect, useState } from "react";
 
 type Scope = "departamento" | "municipio" | "colegio";
 type Fila = { apodo: string; puntaje: number; colegio?: string; promedio?: number };
 
 export default function RankingPage() {
-  const session = getPlayerSession();
+  const session = usePlayerSession();
   const [scope, setScope] = useState<Scope>("colegio");
   const [filas, setFilas] = useState<Fila[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const cargarRanking = useCallback(async () => {
     if (!session) {
       setFilas([]);
       setLoading(false);
       return;
     }
+
     setLoading(true);
+    setError(null);
+
     const q = new URLSearchParams({
       scope,
       departamento: session.departamento,
       municipio: session.municipio,
       colegio: session.colegio,
     });
-    fetch(`/api/rankings?${q}`)
-      .then((r) => r.json())
-      .then((d: { ranking: Fila[] }) => setFilas(d.ranking ?? []))
-      .finally(() => setLoading(false));
+
+    try {
+      const res = await fetch(`/api/rankings?${q}`);
+      if (!res.ok) throw new Error("No se pudo cargar el ranking");
+      const d = (await res.json()) as { ranking: Fila[] };
+      setFilas(d.ranking ?? []);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error de red");
+      setFilas([]);
+    } finally {
+      setLoading(false);
+    }
   }, [scope, session]);
+
+  useEffect(() => {
+    void cargarRanking();
+  }, [cargarRanking]);
 
   const tabs: { id: Scope; label: string }[] = [
     { id: "colegio", label: "Mi colegio" },
@@ -63,6 +79,8 @@ export default function RankingPage() {
 
       {loading ? (
         <p className="text-slate-400">Cargando ranking…</p>
+      ) : error ? (
+        <p className="text-red-400">{error}</p>
       ) : filas.length === 0 ? (
         <p className="text-slate-500">Aún no hay puntajes. ¡Sé el primero!</p>
       ) : (

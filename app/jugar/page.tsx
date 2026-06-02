@@ -28,6 +28,7 @@ export default function JugarPage() {
     fraseExtra?: string;
   } | null>(null);
   const [locked, setLocked] = useState(false);
+  const [guardando, setGuardando] = useState(false);
 
   useEffect(() => {
     if (!getPlayerSession()) {
@@ -48,12 +49,17 @@ export default function JugarPage() {
     async (puntajeFinal: number) => {
       const session = getPlayerSession();
       if (!session) return;
-      await fetch("/api/rankings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...session, puntaje: puntajeFinal }),
-      });
-      router.push(`/resultado?puntaje=${puntajeFinal}`);
+      setGuardando(true);
+      try {
+        await fetch("/api/rankings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...session, puntaje: puntajeFinal }),
+        });
+      } catch {
+        // Igual mostramos resultado; el usuario puede reintentar otra ronda
+      }
+      router.replace(`/resultado?puntaje=${puntajeFinal}`);
     },
     [router],
   );
@@ -84,10 +90,12 @@ export default function JugarPage() {
     }, 1400);
   };
 
-  if (loading) {
+  if (loading || guardando) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <p className="animate-pulse text-slate-400">Preparando preguntas…</p>
+        <p className="animate-pulse text-slate-400">
+          {guardando ? "Guardando tu puntaje…" : "Preparando preguntas…"}
+        </p>
       </div>
     );
   }
