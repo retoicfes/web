@@ -1,4 +1,7 @@
 import { hasDatabaseConfig } from "@/lib/ensure-db-env";
+import { PUNTAJE_GLOBAL_MAXIMO, PUNTAJE_GLOBAL_MINIMO } from "@/lib/icfes-puntaje-limits";
+import { rateLimit, sanitizeApodo, sanitizeTexto } from "@/lib/security/rate-limit";
+import { verificarTokenRanking, signingConfigured } from "@/lib/security/round-token";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -7,6 +10,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { error: "Base de datos no configurada en el servidor" },
       { status: 503 },
+    );
+  }
+
+  const limited = rateLimit(req, "rankings:post", 15, 60_000);
+  if (!limited.ok) {
+    return NextResponse.json(
+      { error: "Demasiados intentos. Espera un momento." },
+      { status: 429, headers: { "Retry-After": String(limited.retryAfterSec) } },
     );
   }
 
@@ -21,22 +32,52 @@ export async function POST(req: NextRequest) {
       daneDepartamento,
       daneMunicipio,
       codigoEstablecimiento,
+      rankingToken,
     } = body;
 
     if (!apodo || !departamento || !municipio || !colegio || typeof puntaje !== "number") {
       return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
     }
 
+    const puntajeRedondeado = Math.round(puntaje);
+    if (
+      puntajeRedondeado < PUNTAJE_GLOBAL_MINIMO ||
+      puntajeRedondeado > PUNTAJE_GLOBAL_MAXIMO
+    ) {
+      return NextResponse.json({ error: "Puntaje fuera de rango" }, { status: 400 });
+    }
+
+    if (!signingConfigured() || typeof rankingToken !== "string") {
+      return NextResponse.json(
+        { error: "Token de ronda requerido. Completa el juego normalmente." },
+        { status: 403 },
+      );
+    }
+
+    if (!verificarTokenRanking(rankingToken, puntajeRedondeado)) {
+      return NextResponse.json({ error: "Token de puntaje inválido o expirado" }, { status: 403 });
+    }
+
+    if (
+      codigoEstablecimiento &&
+      daneMunicipio &&
+      !(await colegioValido(String(codigoEstablecimiento), String(daneMunicipio)))
+    ) {
+      return NextResponse.json({ error: "Colegio no válido" }, { status: 400 });
+    }
+
     const row = await prisma.ranking.create({
       data: {
-        apodo: String(apodo).slice(0, 24),
-        departamento,
-        municipio,
-        colegio,
-        daneDepartamento: daneDepartamento ? String(daneDepartamento) : null,
-        daneMunicipio: daneMunicipio ? String(daneMunicipio) : null,
-        codigoEstablecimiento: codigoEstablecimiento ? String(codigoEstablecimiento) : null,
-        puntaje: Math.max(0, Math.min(1000, Math.round(puntaje))),
+        apodo: sanitizeApodo(apodo),
+        departamento: sanitizeTexto(departamento, 120),
+        municipio: sanitizeTexto(municipio, 120),
+        colegio: sanitizeTexto(colegio, 500),
+        daneDepartamento: daneDepartamento ? sanitizeTexto(daneDepartamento, 10) : null,
+        daneMunicipio: daneMunicipio ? sanitizeTexto(daneMunicipio, 10) : null,
+        codigoEstablecimiento: codigoEstablecimiento
+          ? sanitizeTexto(codigoEstablecimiento, 20)
+          : null,
+        puntaje: puntajeRedondeado,
       },
     });
 
@@ -49,6 +90,16 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     );
   }
+}
+
+async function colegioValido(codigo: string, daneMuni: string): Promise<boolean> {
+  const count = await prisma.establecimiento.count({
+    where: {
+      codigo,
+      municipio: { codigoDane: daneMuni },
+    },
+  });
+  return count > 0;
 }
 
 export async function GET(req: NextRequest) {

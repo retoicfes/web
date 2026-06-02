@@ -3,13 +3,11 @@
 import { FeedbackOverlay } from "@/components/game/FeedbackOverlay";
 import { QuestionCard } from "@/components/game/QuestionCard";
 import { MobileShell } from "@/components/ui/MobileShell";
-import { calcularResultadoICFES } from "@/lib/icfes-puntaje";
+import type { ResultadoICFES } from "@/lib/icfes-puntaje";
 import {
   PREGUNTAS_POR_RONDA,
   SEGUNDOS_POR_PREGUNTA,
   fraseAlFallar,
-  mezclarOpcionesPregunta,
-  shuffleArray,
   type OpcionLetra,
   type PreguntaDTO,
 } from "@/lib/game";
@@ -18,15 +16,14 @@ import { getPlayerSession } from "@/lib/session";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 
-type PreguntaConRespuesta = PreguntaDTO & { correcta: string; explicacion: string };
-
-type RespuestaRegistro = { materia: string; correcta: boolean };
+type RespuestaEnvio = { preguntaId: string; letra: OpcionLetra | null };
 
 function JugarContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nuevaRonda = searchParams.get("nueva") === "1";
-  const [preguntas, setPreguntas] = useState<PreguntaConRespuesta[]>([]);
+  const [preguntas, setPreguntas] = useState<PreguntaDTO[]>([]);
+  const [rondaToken, setRondaToken] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState<{
@@ -37,7 +34,7 @@ function JugarContent() {
   const [locked, setLocked] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [segundosRestantes, setSegundosRestantes] = useState(SEGUNDOS_POR_PREGUNTA);
-  const respuestasRef = useRef<RespuestaRegistro[]>([]);
+  const respuestasRef = useRef<RespuestaEnvio[]>([]);
   const [aciertos, setAciertos] = useState(0);
   const [respondidas, setRespondidas] = useState(0);
 
@@ -55,23 +52,26 @@ function JugarContent() {
       router.replace("/ranking");
       return;
     }
-    fetch(`/api/preguntas?limit=${PREGUNTAS_POR_RONDA}`)
+    fetch("/api/ronda/iniciar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ limit: PREGUNTAS_POR_RONDA }),
+    })
       .then((r) => r.json())
-      .then((data: { preguntas: PreguntaConRespuesta[] }) => {
-        if (!data.preguntas?.length) throw new Error("Sin preguntas");
+      .then((data: { token?: string; preguntas?: PreguntaDTO[]; error?: string }) => {
+        if (!data.token || !data.preguntas?.length) throw new Error(data.error ?? "Sin preguntas");
         respuestasRef.current = [];
         setAciertos(0);
         setRespondidas(0);
-        setPreguntas(
-          shuffleArray(data.preguntas).map((p) => mezclarOpcionesPregunta(p)),
-        );
+        setRondaToken(data.token);
+        setPreguntas(data.preguntas);
       })
       .catch(() => router.replace("/onboarding"))
       .finally(() => setLoading(false));
   }, [router, nuevaRonda]);
 
   const finalizar = useCallback(
-    async (resultado: ReturnType<typeof calcularResultadoICFES>) => {
+    async (resultado: ResultadoICFES, rankingToken: string) => {
       const session = getPlayerSession();
       if (!session) return;
       markRoundComplete(resultado);
@@ -81,7 +81,7 @@ function JugarContent() {
         const res = await fetch("/api/rankings", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...session, puntaje: global }),
+          body: JSON.stringify({ ...session, puntaje: global, rankingToken }),
         });
         if (!res.ok) {
           const err = (await res.json().catch(() => ({}))) as { error?: string };
@@ -99,48 +99,93 @@ function JugarContent() {
     [router],
   );
 
-  const avanzarPregunta = useCallback(() => {
-    setTimeout(() => {
-      setFeedback(null);
-      const siguiente = index + 1;
-      if (siguiente >= preguntas.length) {
-        const resultado = calcularResultadoICFES(respuestasRef.current);
-        void finalizar(resultado);
-        return;
-      }
-      setIndex(siguiente);
-      setSegundosRestantes(SEGUNDOS_POR_PREGUNTA);
-      setLocked(false);
-    }, 1400);
-  }, [index, preguntas.length, finalizar]);
-
-  const procesarRespuesta = useCallback(
-    (letra: OpcionLetra | null) => {
-      if (locked || !preguntas[index]) return;
-      setLocked(true);
-      const actual = preguntas[index];
-      const correcto = letra != null && actual.correcta.toUpperCase() === letra;
-
-      respuestasRef.current.push({ materia: actual.materia, correcta: correcto });
+  const avanzarPregunta = useCallback(
+    (correcto: boolean) => {
       setRespondidas((n) => n + 1);
       if (correcto) setAciertos((n) => n + 1);
 
-      setFeedback({
-        correcto,
-        explicacion: actual.explicacion,
-        fraseExtra: correcto
-          ? undefined
-          : letra == null
-            ? "⏱️ Se acabó el tiempo — la próxima la tienes"
-            : fraseAlFallar(),
-      });
-      avanzarPregunta();
+      setTimeout(() => {
+        setFeedback(null);
+        const siguiente = index + 1;
+        if (siguiente >= preguntas.length) {
+          if (!rondaToken) return;
+          void (async () => {
+            try {
+              const res = await fetch("/api/ronda/finalizar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  token: rondaToken,
+                  respuestas: respuestasRef.current,
+                }),
+              });
+              const data = (await res.json()) as {
+                resultado?: ResultadoICFES;
+                rankingToken?: string;
+                error?: string;
+              };
+              if (!res.ok || !data.resultado || !data.rankingToken) {
+                router.replace("/onboarding");
+                return;
+              }
+              await finalizar(data.resultado, data.rankingToken);
+            } catch {
+              router.replace("/onboarding");
+            }
+          })();
+          return;
+        }
+        setIndex(siguiente);
+        setSegundosRestantes(SEGUNDOS_POR_PREGUNTA);
+        setLocked(false);
+      }, 1400);
     },
-    [locked, preguntas, index, avanzarPregunta],
+    [index, preguntas.length, rondaToken, finalizar, router],
+  );
+
+  const procesarRespuesta = useCallback(
+    async (letra: OpcionLetra | null) => {
+      if (locked || !preguntas[index] || !rondaToken) return;
+      setLocked(true);
+      const actual = preguntas[index];
+
+      respuestasRef.current.push({ preguntaId: actual.id, letra });
+
+      try {
+        const res = await fetch("/api/ronda/responder", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token: rondaToken,
+            preguntaId: actual.id,
+            letra,
+          }),
+        });
+        const data = (await res.json()) as {
+          correcto?: boolean;
+          explicacion?: string;
+        };
+
+        const correcto = Boolean(data.correcto);
+        setFeedback({
+          correcto,
+          explicacion: data.explicacion ?? "",
+          fraseExtra: correcto
+            ? undefined
+            : letra == null
+              ? "⏱️ Se acabó el tiempo — la próxima la tienes"
+              : fraseAlFallar(),
+        });
+        avanzarPregunta(correcto);
+      } catch {
+        setLocked(false);
+      }
+    },
+    [locked, preguntas, index, rondaToken, avanzarPregunta],
   );
 
   const responder = useCallback(
-    (letra: OpcionLetra) => procesarRespuesta(letra),
+    (letra: OpcionLetra) => void procesarRespuesta(letra),
     [procesarRespuesta],
   );
 
@@ -155,7 +200,7 @@ function JugarContent() {
       setSegundosRestantes(restante);
       if (restante <= 0) {
         window.clearInterval(id);
-        procesarRespuesta(null);
+        void procesarRespuesta(null);
       }
     }, 1000);
 
