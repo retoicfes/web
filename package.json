@@ -10,7 +10,9 @@
     "lint": "eslint .",
     "postinstall": "prisma generate",
     "db:push": "tsx prisma/run-cli.ts db push",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:clean": "tsx prisma/clean.ts",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:reset": "tsx prisma/clean.ts && tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",
