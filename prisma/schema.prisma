@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model PreguntaICFES {
+  id          String @id @default(uuid())
+  materia     String
+  enunciado   String
+  opcionA     String
+  opcionB     String
+  opcionC     String
+  opcionD     String
+  correcta    String
+  explicacion String
+
+  @@map("preguntas_icfes")
+}
+
+model Ranking {
+  id           String   @id @default(uuid())
+  apodo        String
+  departamento String
+  municipio    String
+  colegio      String
+  puntaje      Int
+  createdAt    DateTime @default(now())
+
+  @@index([departamento, puntaje])
+  @@index([departamento, municipio, puntaje])
+  @@index([departamento, municipio, colegio, puntaje])
+  @@map("rankings")
+}

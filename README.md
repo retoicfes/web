@@ -1,41 +1,78 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Reto ICFES — MVP Web
 
-## Getting Started
+Plataforma móvil-first para practicar preguntas tipo Saber 11 con mecánica rápida (tap / swipe) y rankings por ubicación.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Next.js 16 (App Router) + TypeScript + Tailwind CSS 4
+- PostgreSQL (Vercel Postgres / Neon) + Prisma
+- Deploy: Vercel (`retoicfes/web`)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Día 1 — Infra y base de datos
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+1. Clona y entra al repo:
+   ```bash
+   cd web
+   pnpm install
+   ```
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+2. Copia variables **reales** desde Vercel (Storage → Postgres → `.env.local`):
+   ```bash
+   cp .env.example .env.local
+   ```
+   Pega `POSTGRES_PRISMA_URL` y `POSTGRES_URL_NON_POOLING`, o como mínimo:
+   ```env
+   DATABASE_URL="postgresql://..."   # pooled (Prisma en la app)
+   DIRECT_URL="postgresql://..."     # non-pooling (db push); puede ser la misma en Neon dev
+   ```
+   **No dejes** los placeholders `USER:PASSWORD@HOST` del ejemplo.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+3. Crea tablas y datos de prueba:
+   ```bash
+   pnpm db:push
+   pnpm db:seed
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+4. Arranca en local:
+   ```bash
+   pnpm dev
+   ```
+   Abre http://localhost:3000 en el celular (misma red) o DevTools móvil.
 
-## Learn More
+## Día 2 — Flujos del MVP
 
-To learn more about Next.js, take a look at the following resources:
+| Ruta | Qué hace |
+|------|----------|
+| `/` | Landing + CTA |
+| `/onboarding` | Apodo + Departamento → Municipio → Colegio (localStorage) |
+| `/jugar` | 10 preguntas, feedback, puntaje |
+| `/resultado` | Puntaje final + guardar en Postgres |
+| `/ranking` | Top por colegio / municipio / departamento |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### APIs
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+- `GET /api/preguntas?limit=10`
+- `POST /api/rankings` — body: `{ apodo, departamento, municipio, colegio, puntaje }`
+- `GET /api/rankings?scope=colegio|municipio|departamento&...`
 
-## Deploy on Vercel
+## Deploy en Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Importa el repo `retoicfes/web`.
+2. Framework: Next.js (detectado).
+3. Variables de entorno: `DATABASE_URL`, `DIRECT_URL` desde Vercel Postgres.
+4. Build: `pnpm build` (incluye `prisma generate`).
+5. Tras el primer deploy, ejecuta en local contra prod o usa Vercel CLI:
+   ```bash
+   pnpm db:push
+   pnpm db:seed
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
-# web-portal
+## Próximos días (roadmap 5 días)
+
+- **Día 3:** Más preguntas (CSV/import), animaciones swipe con Framer Motion, OG image para WhatsApp.
+- **Día 4:** Ranking intercolegial (promedio por institución), rate limit API, PWA manifest.
+- **Día 5:** QA móvil, métricas Vercel Analytics, copy viral y prueba piloto en un colegio.
+
+## Nota
+
+El template admin anterior (`legacy/pages`) se conservó fuera del router por referencia; el MVP vive en `app/`.
