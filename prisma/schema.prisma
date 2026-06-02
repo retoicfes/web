@@ -8,18 +8,44 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model PreguntaICFES {
-  id          String @id @default(uuid())
-  materia     String
-  enunciado   String
-  opcionA     String
-  opcionB     String
-  opcionC     String
-  opcionD     String
-  correcta    String
-  explicacion String
+model ContextoICFES {
+  id        String   @id @default(uuid())
+  materia   String
+  titulo    String?
+  contenido String   @db.Text
+  createdAt DateTime @default(now())
+  preguntas PreguntaICFES[]
 
+  @@index([materia])
+  @@map("contextos_icfes")
+}
+
+model PreguntaICFES {
+  id              String              @id @default(uuid())
+  materia         String
+  enunciado       String              @db.Text
+  opcionA         String              @db.Text
+  opcionB         String              @db.Text
+  opcionC         String              @db.Text
+  opcionD         String              @db.Text
+  correcta        String
+  explicacion     String              @db.Text
+  /** Solo analytics internos; no afecta puntaje ICFES ni ranking. */
+  dificultad      DificultadPregunta  @default(media)
+  contextoId      String?
+  ordenEnContexto Int?
+  contexto        ContextoICFES?      @relation(fields: [contextoId], references: [id], onDelete: SetNull)
+
+  @@index([materia])
+  @@index([materia, dificultad])
+  @@index([contextoId, ordenEnContexto])
   @@map("preguntas_icfes")
+}
+
+enum DificultadPregunta {
+  facil
+  media
+  dificil
 }
 
 model Departamento {

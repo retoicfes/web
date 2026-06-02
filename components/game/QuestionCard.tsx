@@ -90,7 +90,22 @@ export function QuestionCard({
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        <div className="flex flex-1 flex-col items-center justify-center gap-4">
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 overflow-hidden">
+          {pregunta.contexto ? (
+            <div className="max-h-32 w-full shrink-0 overflow-y-auto rounded-xl border border-slate-700/80 bg-slate-950/50 p-3 text-left">
+              {pregunta.contexto.titulo ? (
+                <p className="mb-1 text-xs font-semibold text-indigo-300">
+                  {pregunta.contexto.titulo}
+                  {pregunta.ordenEnContexto
+                    ? ` · Pregunta ${pregunta.ordenEnContexto}`
+                    : ""}
+                </p>
+              ) : null}
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-300">
+                {pregunta.contexto.contenido}
+              </p>
+            </div>
+          ) : null}
           <p className="text-center text-lg font-semibold leading-snug">{pregunta.enunciado}</p>
           <p className="max-w-[280px] text-center text-xs leading-relaxed text-slate-500">
             <span className="text-slate-400">⏱️ Desliza la tarjeta:</span>

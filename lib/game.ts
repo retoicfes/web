@@ -1,11 +1,21 @@
 import { createHash } from "node:crypto";
 
 export const PREGUNTAS_POR_RONDA = 10;
+/** Ítems por área Saber 11 en cada ronda (5 áreas × 2 = 10). */
+export const PREGUNTAS_POR_AREA_RONDA = 2;
 export const PUNTOS_POR_ACIERTO = 10;
 /** Tiempo máximo por pregunta antes de contar como fallo. */
-export const SEGUNDOS_POR_PREGUNTA = 30;
+export const SEGUNDOS_POR_PREGUNTA = 20;
+/** Segundos en los que suena alerta sonora. */
+export const SEGUNDOS_ALERTA_TIMER = [5, 3] as const;
 
 export type OpcionLetra = "A" | "B" | "C" | "D";
+
+export type ContextoPregunta = {
+  id: string;
+  titulo: string | null;
+  contenido: string;
+};
 
 export type PreguntaDTO = {
   id: string;
@@ -15,6 +25,8 @@ export type PreguntaDTO = {
   opcionB: string;
   opcionC: string;
   opcionD: string;
+  contexto?: ContextoPregunta | null;
+  ordenEnContexto?: number | null;
 };
 
 export const FRASES_FALLA = [
@@ -67,10 +79,9 @@ export function shuffleArraySeeded<T>(items: T[], seed: string): T[] {
 }
 
 /** Reordena opciones con semilla por pregunta; devuelve DTO público y la letra correcta. */
-export function mezclarOpcionesConSemilla<T extends PreguntaDTO & { correcta: string }>(
-  p: T,
-  shuffleSeed: string,
-): { pregunta: PreguntaDTO; correcta: OpcionLetra } {
+export function mezclarOpcionesConSemilla<
+  T extends PreguntaDTO & { correcta: string; contexto?: ContextoPregunta | null },
+>(p: T, shuffleSeed: string): { pregunta: PreguntaDTO; correcta: OpcionLetra } {
   const pares = LETRAS.map((letra) => ({
     letraOriginal: letra,
     texto: opcionTexto(p, letra),
@@ -89,6 +100,8 @@ export function mezclarOpcionesConSemilla<T extends PreguntaDTO & { correcta: st
       opcionB: mezcladas[1].texto,
       opcionC: mezcladas[2].texto,
       opcionD: mezcladas[3].texto,
+      contexto: p.contexto ?? null,
+      ordenEnContexto: p.ordenEnContexto ?? null,
     },
     correcta: LETRAS[idxCorrecta] ?? correctaOriginal,
   };

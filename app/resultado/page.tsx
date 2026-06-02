@@ -81,7 +81,7 @@ function ResultadoContent() {
 
       <div className="flex justify-center pt-2">
         <Link
-          href="/ranking"
+          href={session ? "/ranking?scope=colegio" : "/ranking"}
           className="flex items-center justify-center gap-2 rounded-2xl bg-indigo-500 px-10 py-4 text-lg font-bold text-white shadow-lg shadow-indigo-500/25 active:scale-[0.98]"
         >
           <IconTrophy className="h-6 w-6" />

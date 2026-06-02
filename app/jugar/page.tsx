@@ -6,11 +6,13 @@ import { MobileShell } from "@/components/ui/MobileShell";
 import type { ResultadoICFES } from "@/lib/icfes-puntaje";
 import {
   PREGUNTAS_POR_RONDA,
+  SEGUNDOS_ALERTA_TIMER,
   SEGUNDOS_POR_PREGUNTA,
   fraseAlFallar,
   type OpcionLetra,
   type PreguntaDTO,
 } from "@/lib/game";
+import { playAlertaTimer } from "@/lib/timer-sound";
 import { clearRoundComplete, getCompletedRound, markRoundComplete } from "@/lib/round";
 import { getPlayerSession } from "@/lib/session";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -198,6 +200,9 @@ function JugarContent() {
     const id = window.setInterval(() => {
       restante -= 1;
       setSegundosRestantes(restante);
+      if (SEGUNDOS_ALERTA_TIMER.includes(restante as 5 | 3)) {
+        playAlertaTimer(restante as 5 | 3);
+      }
       if (restante <= 0) {
         window.clearInterval(id);
         void procesarRespuesta(null);

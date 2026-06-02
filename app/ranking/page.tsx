@@ -8,7 +8,8 @@ import { getCompletedRound } from "@/lib/round";
 import { getPlayerSession } from "@/lib/session";
 import { useRoundComplete } from "@/lib/use-round-complete";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 
 type Scope = "colegio" | "municipio" | "departamento" | "nacional";
 type Fila = {
@@ -67,15 +68,25 @@ const TABS: { id: Scope; label: string }[] = [
   { id: "nacional", label: "Nacional" },
 ];
 
-export default function RankingPage() {
+function esScopeValido(v: string | null): v is Scope {
+  return v === "colegio" || v === "municipio" || v === "departamento" || v === "nacional";
+}
+
+function scopeInicial(scopeUrl: string | null): Scope {
+  if (esScopeValido(scopeUrl)) return scopeUrl;
+  return "nacional";
+}
+
+function RankingContent() {
+  const searchParams = useSearchParams();
+  const scopeUrl = searchParams.get("scope");
   const session = usePlayerSession();
   const rondaCompleta = useRoundComplete();
-  const [scope, setScope] = useState<Scope>("nacional");
+  const [scope, setScope] = useState<Scope>(() => scopeInicial(scopeUrl));
   const [explorando, setExplorando] = useState<UbicacionRanking | null>(null);
   const [filas, setFilas] = useState<Fila[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [inicioScope, setInicioScope] = useState(false);
 
   const ubicacion = useMemo<Ubicacion | null>(() => {
     if (session) {
@@ -89,10 +100,12 @@ export default function RankingPage() {
   }, [session, explorando]);
 
   useEffect(() => {
-    if (inicioScope) return;
-    setScope(getPlayerSession() ? "colegio" : "nacional");
-    setInicioScope(true);
-  }, [inicioScope]);
+    if (esScopeValido(scopeUrl)) {
+      setScope(scopeUrl);
+      return;
+    }
+    if (getPlayerSession()) setScope("colegio");
+  }, [scopeUrl]);
 
   const cargarRanking = useCallback(async () => {
     if (scope !== "nacional" && !ubicacion) {
@@ -255,5 +268,13 @@ export default function RankingPage() {
         </div>
       ) : null}
     </MobileShell>
+  );
+}
+
+export default function RankingPage() {
+  return (
+    <Suspense fallback={<p className="p-6 text-center text-slate-400">Cargando ranking…</p>}>
+      <RankingContent />
+    </Suspense>
   );
 }

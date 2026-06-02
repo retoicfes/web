@@ -1,6 +1,7 @@
 import { hasDatabaseConfig } from "@/lib/ensure-db-env";
-import { PREGUNTAS_POR_RONDA, shuffleArray } from "@/lib/game";
+import { PREGUNTAS_POR_AREA_RONDA, PREGUNTAS_POR_RONDA, shuffleArray } from "@/lib/game";
 import { AREAS_ICFES } from "@/lib/icfes-puntaje";
+import { preguntaConContextoSelect } from "@/lib/pregunta-map";
 import { publicarPreguntaRonda } from "@/lib/ronda-server";
 import { rateLimit } from "@/lib/security/rate-limit";
 import { crearTokenRonda, signingConfigured } from "@/lib/security/round-token";
@@ -8,12 +9,17 @@ import { prisma } from "@/lib/prisma";
 import { randomBytes } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 
-const PREGUNTAS_POR_AREA_RONDA = 2;
+const preguntaRondaSelect = {
+  ...preguntaConContextoSelect,
+  correcta: true,
+  explicacion: true,
+} as const;
 
-function seleccionarBalanceada(
-  todas: Awaited<ReturnType<typeof prisma.preguntaICFES.findMany>>,
-  limit: number,
-) {
+type PreguntaRondaDb = Awaited<
+  ReturnType<typeof prisma.preguntaICFES.findMany<{ select: typeof preguntaRondaSelect }>>
+>[number];
+
+function seleccionarBalanceada(todas: PreguntaRondaDb[], limit: number) {
   const porArea = AREAS_ICFES.length * PREGUNTAS_POR_AREA_RONDA;
   if (limit >= porArea) {
     const seleccion: typeof todas = [];
@@ -51,17 +57,7 @@ export async function POST(req: NextRequest) {
     const limit = Math.min(Number(body.limit ?? PREGUNTAS_POR_RONDA), 20);
 
     const todas = await prisma.preguntaICFES.findMany({
-      select: {
-        id: true,
-        materia: true,
-        enunciado: true,
-        opcionA: true,
-        opcionB: true,
-        opcionC: true,
-        opcionD: true,
-        correcta: true,
-        explicacion: true,
-      },
+      select: preguntaRondaSelect,
     });
 
     const seleccion = seleccionarBalanceada(todas, limit);
