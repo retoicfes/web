@@ -79,7 +79,13 @@ function ResultadoContent() {
         className="border-t border-slate-800 pt-4"
       />
 
-      <div className="flex justify-center pt-2">
+      <div className="flex flex-col gap-3 pt-2">
+        <Link
+          href="/jugar?nueva=1"
+          className="flex items-center justify-center gap-2 rounded-2xl border border-indigo-500/50 bg-indigo-500/10 px-10 py-4 text-lg font-bold text-indigo-300 active:scale-[0.98]"
+        >
+          Jugar otra ronda
+        </Link>
         <Link
           href={session ? "/ranking?scope=colegio" : "/ranking"}
           className="flex items-center justify-center gap-2 rounded-2xl bg-indigo-500 px-10 py-4 text-lg font-bold text-white shadow-lg shadow-indigo-500/25 active:scale-[0.98]"

@@ -13,7 +13,7 @@ import {
   type PreguntaDTO,
 } from "@/lib/game";
 import { playAlertaTimer } from "@/lib/timer-sound";
-import { clearRoundComplete, getCompletedRound, markRoundComplete } from "@/lib/round";
+import { clearRoundComplete, getCompletedRound, getUltimaRondaIds, markRoundComplete, saveUltimaRondaIds } from "@/lib/round";
 import { getPlayerSession } from "@/lib/session";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
@@ -50,14 +50,22 @@ function JugarContent() {
       respuestasRef.current = [];
       setAciertos(0);
       setRespondidas(0);
+      setIndex(0);
+      setPreguntas([]);
+      setRondaToken(null);
+      setLoading(true);
     } else if (getCompletedRound()) {
       router.replace("/ranking");
       return;
     }
     fetch("/api/ronda/iniciar", {
       method: "POST",
+      cache: "no-store",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ limit: PREGUNTAS_POR_RONDA }),
+      body: JSON.stringify({
+        limit: PREGUNTAS_POR_RONDA,
+        excludeIds: getUltimaRondaIds(),
+      }),
     })
       .then((r) => r.json())
       .then((data: { token?: string; preguntas?: PreguntaDTO[]; error?: string }) => {
@@ -65,8 +73,10 @@ function JugarContent() {
         respuestasRef.current = [];
         setAciertos(0);
         setRespondidas(0);
+        setIndex(0);
         setRondaToken(data.token);
         setPreguntas(data.preguntas);
+        saveUltimaRondaIds(data.preguntas.map((p) => p.id));
       })
       .catch(() => router.replace("/onboarding"))
       .finally(() => setLoading(false));

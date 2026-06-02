@@ -259,7 +259,13 @@ function RankingContent() {
       )}
 
       {rondaCompleta ? (
-        <div className="mt-6">
+        <div className="mt-6 space-y-3">
+          <Link
+            href="/jugar?nueva=1"
+            className="block w-full rounded-2xl border border-indigo-500/40 bg-indigo-500/10 py-3.5 text-center text-sm font-bold text-indigo-300"
+          >
+            Jugar otra ronda
+          </Link>
           <ShareRetoButtons
             puntaje={getCompletedRound()?.puntaje}
             apodo={session?.apodo}
