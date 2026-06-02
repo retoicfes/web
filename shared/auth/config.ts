@@ -11,7 +11,7 @@ export const zitadelConfig = {
   clientId: process.env.NEXT_PUBLIC_OIDC_CLIENT_ID ?? "lte-nexus-web",
   redirectUri:
     process.env.NEXT_PUBLIC_OIDC_REDIRECT_URI ??
-    "http://localhost:3000/api/auth/callback",
+    "http://localhost:3000/auth/callback/",
   postLogoutRedirectUri:
     process.env.NEXT_PUBLIC_OIDC_POST_LOGOUT_URI ?? "http://localhost:3000/",
 };

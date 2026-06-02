@@ -22,7 +22,6 @@ export async function signInWithZitadel(): Promise<void> {
   const verifier = randomString(32);
   const challenge = await sha256Base64Url(verifier);
   sessionStorage.setItem("oidc_code_verifier", verifier);
-  document.cookie = `oidc_code_verifier=${verifier}; path=/; max-age=600; SameSite=Lax`;
   const params = new URLSearchParams({
     client_id: zitadelConfig.clientId,
     redirect_uri: zitadelConfig.redirectUri,
