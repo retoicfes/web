@@ -49,11 +49,32 @@ export async function GET(req: NextRequest) {
   const municipio = req.nextUrl.searchParams.get("municipio");
   const colegio = req.nextUrl.searchParams.get("colegio");
 
-  if (!departamento) {
-    return NextResponse.json({ ranking: [] });
-  }
-
   try {
+    if (scope === "nacional") {
+      const grupos = await prisma.ranking.groupBy({
+        by: ["departamento", "municipio", "colegio"],
+        _avg: { puntaje: true },
+        _count: { _all: true },
+        orderBy: { _avg: { puntaje: "desc" } },
+        take: 50,
+      });
+
+      return NextResponse.json({
+        ranking: grupos.map((g) => ({
+          apodo: g.colegio,
+          colegio: g.colegio,
+          municipio: g.municipio,
+          departamento: g.departamento,
+          puntaje: Math.round(g._avg.puntaje ?? 0),
+          jugadores: g._count._all,
+        })),
+      });
+    }
+
+    if (!departamento) {
+      return NextResponse.json({ ranking: [] });
+    }
+
     if (scope === "departamento") {
       const rows = await prisma.ranking.findMany({
         where: { departamento },
