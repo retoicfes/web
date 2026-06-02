@@ -5,7 +5,6 @@ import { MobileShell } from "@/components/ui/MobileShell";
 import { usePlayerSession } from "@/lib/use-player-session";
 import { getCompletedRound } from "@/lib/round";
 import { useRoundComplete } from "@/lib/use-round-complete";
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 type Scope = "colegio" | "municipio" | "departamento" | "nacional";
@@ -179,24 +178,12 @@ export default function RankingPage() {
       )}
 
       {rondaCompleta ? (
-        <div className="mt-6 space-y-4">
+        <div className="mt-6">
           <ShareRetoButtons
             puntaje={getCompletedRound()?.puntaje}
             apodo={session?.apodo}
             colegio={session?.colegio}
           />
-          <Link
-            href={`/resultado?puntaje=${getCompletedRound()?.puntaje ?? 0}&saved=1`}
-            className="block rounded-xl border border-slate-700 py-3 text-center text-sm text-slate-300"
-          >
-            Ver mi última ronda
-          </Link>
-          <Link
-            href="/jugar?nueva=1"
-            className="block rounded-2xl bg-indigo-500 py-3 text-center font-bold text-white"
-          >
-            Jugar otra vez
-          </Link>
         </div>
       ) : null}
     </MobileShell>

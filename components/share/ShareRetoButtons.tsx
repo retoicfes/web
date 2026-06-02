@@ -100,7 +100,7 @@ export function ShareRetoButtons({ puntaje, apodo, colegio, destacado = false, c
             className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-600 bg-slate-800/80 py-2.5 text-sm text-slate-200"
           >
             <span aria-hidden>📤</span>
-            Más apps
+            Compartir
           </button>
         ) : null}
         <button
