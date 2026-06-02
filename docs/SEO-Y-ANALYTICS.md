@@ -22,7 +22,9 @@ NEXT_PUBLIC_SITE_URL=https://retoicfes.com
 NEXT_PUBLIC_GTM_ID=GTM-WS9J3TRR
 ```
 
-Configura GA4, conversiones y píxeles **dentro de Tag Manager**, no hace falta `NEXT_PUBLIC_GA_MEASUREMENT_ID` si GA4 ya está en el contenedor GTM.
+GA4 directo: `NEXT_PUBLIC_GA_MEASUREMENT_ID=G-53L2DLHYFF` (ya en el código).
+
+**Importante:** Si también tienes un tag GA4 dentro de GTM, desactívalo allí para no contar visitas dos veces. Usa GTM para Ads, Meta Pixel, etc., y gtag directo para GA4 (o al revés).
 
 ## Checklist post-deploy (para rankear)
 

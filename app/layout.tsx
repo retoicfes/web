@@ -75,6 +75,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <JsonLd />
         <GoogleTagManager />
+        <GoogleAnalytics />
       </head>
       <body>
         <GoogleTagManagerNoScript />
@@ -83,7 +84,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </div>
         <Analytics />
         <SpeedInsights />
-        <GoogleAnalytics />
       </body>
     </html>
   );
