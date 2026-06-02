@@ -41,8 +41,7 @@ export default function HomePage() {
             Reto <span className="text-indigo-400">ICFES</span>
           </h1>
           <p className="text-slate-400">
-            Como el Mundial, pero de conocimiento: retos rápidos, ranking por colegio y
-            reta a tu curso por WhatsApp 📱
+            Reta a tu curso por WhatsApp y reta a otras instituciones 📱
           </p>
         </div>
       </div>
@@ -60,7 +59,7 @@ export default function HomePage() {
         >
           Ver rankings 🏆
         </Link>
-        <ShareRetoButtons className="pt-2" />
+        <ShareRetoButtons className="pt-2" ocultarEncabezado />
       </div>
     </main>
   );

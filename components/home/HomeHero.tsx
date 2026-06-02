@@ -3,6 +3,14 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
+export const AREAS_SABER_11 = [
+  "Lectura Crítica",
+  "Matemáticas",
+  "Ciencias Naturales",
+  "Inglés",
+  "Sociales y Ciudadanas",
+] as const;
+
 /** Rutas en public/images/ (se prueba WebP y luego PNG). */
 export const HOME_HERO_IMAGE_CANDIDATES = [
   "/images/home-hero-mundial.webp",
@@ -67,16 +75,16 @@ function HomeHeroIllustration() {
             Saber 11
           </span>
         </p>
-        <p className="mt-1 max-w-[220px] text-center text-xs text-indigo-200/90">
-          Gólate con preguntas tipo ICFES y sube el ranking de tu colegio
+        <p className="mt-1 text-center text-sm font-bold text-indigo-100">
+          Ranking de tu institución
         </p>
       </div>
 
-      <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2 px-4">
-        {["Matemáticas", "Lectura", "Inglés"].map((m) => (
+      <div className="absolute bottom-3 left-0 right-0 flex flex-wrap justify-center gap-1.5 px-3">
+        {AREAS_SABER_11.map((m) => (
           <span
             key={m}
-            className="rounded-lg bg-slate-900/70 px-2 py-0.5 text-[10px] font-medium text-slate-300 backdrop-blur-sm"
+            className="rounded-lg bg-slate-900/75 px-1.5 py-0.5 text-[9px] font-medium leading-tight text-slate-300 backdrop-blur-sm"
           >
             {m}
           </span>
@@ -126,8 +134,10 @@ export function HomeHero() {
           />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 via-slate-950/50 to-transparent px-4 pb-4 pt-16">
             <p className="text-center text-lg font-black text-white">
-              Tu mundial es{" "}
-              <span className="text-amber-300">Saber 11</span>
+              Tu mundial es <span className="text-amber-300">Saber 11</span>
+            </p>
+            <p className="mt-0.5 text-center text-sm font-bold text-indigo-100">
+              Ranking de tu institución
             </p>
           </div>
           <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-500/20 px-3 py-1 text-xs font-bold uppercase tracking-wide text-amber-100 backdrop-blur-sm">

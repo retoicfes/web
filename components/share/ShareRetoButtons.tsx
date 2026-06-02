@@ -16,6 +16,8 @@ import { useCallback, useMemo, useState, type ReactNode } from "react";
 
 type Props = ShareRetoContext & {
   destacado?: boolean;
+  /** Sin título encima de los botones (p. ej. inicio). */
+  ocultarEncabezado?: boolean;
   className?: string;
 };
 
@@ -129,7 +131,14 @@ function IconActionButton({
   );
 }
 
-export function ShareRetoButtons({ puntaje, apodo, colegio, destacado = false, className = "" }: Props) {
+export function ShareRetoButtons({
+  puntaje,
+  apodo,
+  colegio,
+  destacado = false,
+  ocultarEncabezado = false,
+  className = "",
+}: Props) {
   const [copiado, setCopiado] = useState(false);
 
   const ctx = useMemo(() => ({ puntaje, apodo, colegio }), [puntaje, apodo, colegio]);
@@ -160,11 +169,12 @@ export function ShareRetoButtons({ puntaje, apodo, colegio, destacado = false, c
 
   return (
     <div className={`space-y-3 ${className}`}>
-      <p className="text-center text-sm font-medium text-slate-300">
-        {puntaje != null && puntaje > 0
-          ? "Reta a tu salón — comparte tu puntaje"
-          : "Invita a tu curso al reto"}
-      </p>
+      {!ocultarEncabezado && puntaje != null && puntaje > 0 ? (
+        <div className="text-center">
+          <p className="text-xl font-black tracking-tight text-white">¡Reta tu salón!</p>
+          <p className="mt-1 text-xs text-slate-500">¿Compartes tu puntaje con el curso?</p>
+        </div>
+      ) : null}
 
       <button
         type="button"
