@@ -1,5 +1,7 @@
 
 import { basePath } from "@/next.config";
+import { getAuthProvider } from "@/shared/auth/config";
+import { signInWithZitadel } from "@/shared/auth/zitadel";
 import { auth } from "@/shared/firebase/firebaseapi";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -25,6 +27,10 @@ const Firebaselogin = () => {
   };
   const Login = (e: { preventDefault: () => void; }) => {
     e.preventDefault();
+    if (getAuthProvider() === "zitadel") {
+      signInWithZitadel().catch((err: Error) => setError(err.message));
+      return;
+    }
     auth.signInWithEmailAndPassword(email, password).then(
         user => { console.log(user); RouteChange(); }).catch(err => { setError(err.message); });
 };
