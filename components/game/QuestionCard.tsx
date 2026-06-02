@@ -3,7 +3,9 @@
 import { QuestionTimer } from "@/components/game/QuestionTimer";
 import type { OpcionLetra, PreguntaDTO } from "@/lib/game";
 import { opcionTexto } from "@/lib/game";
-import { useState } from "react";
+import { useRef, useState } from "react";
+
+const UMBRAL_DESLIZ = 72;
 
 type Props = {
   pregunta: PreguntaDTO;
@@ -15,6 +17,18 @@ type Props = {
   timerPausado?: boolean;
 };
 
+function letraPorDesliz(dx: number, dy: number): OpcionLetra | null {
+  const ax = Math.abs(dx);
+  const ay = Math.abs(dy);
+  if (Math.max(ax, ay) < UMBRAL_DESLIZ) return null;
+  if (ax >= ay) {
+    if (dx < 0) return "A";
+    return "C";
+  }
+  if (dy < 0) return "B";
+  return "D";
+}
+
 export function QuestionCard({
   pregunta,
   index,
@@ -24,30 +38,33 @@ export function QuestionCard({
   segundosRestantes,
   timerPausado,
 }: Props) {
-  const [offsetX, setOffsetX] = useState(0);
+  const startRef = useRef({ x: 0, y: 0 });
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
-  let startX = 0;
 
   const onTouchStart = (e: React.TouchEvent) => {
     if (disabled) return;
-    startX = e.touches[0].clientX;
+    startRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     setDragging(true);
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
     if (!dragging || disabled) return;
-    setOffsetX(e.touches[0].clientX - startX);
+    setOffset({
+      x: e.touches[0].clientX - startRef.current.x,
+      y: e.touches[0].clientY - startRef.current.y,
+    });
   };
 
   const onTouchEnd = () => {
     if (!dragging || disabled) return;
     setDragging(false);
-    if (offsetX > 80) onAnswer("A");
-    else if (offsetX < -80) onAnswer("D");
-    setOffsetX(0);
+    const letra = letraPorDesliz(offset.x, offset.y);
+    if (letra) onAnswer(letra);
+    setOffset({ x: 0, y: 0 });
   };
 
-  const rotate = Math.max(-12, Math.min(12, offsetX / 20));
+  const rotate = Math.max(-10, Math.min(10, offset.x / 24));
 
   return (
     <section className="flex flex-1 flex-col gap-4">
@@ -65,18 +82,32 @@ export function QuestionCard({
       ) : null}
 
       <div
-        className="relative flex flex-1 touch-pan-y flex-col rounded-3xl border border-slate-700/80 bg-gradient-to-b from-slate-800 to-slate-900 p-5 shadow-xl transition-transform"
+        className="relative flex min-h-[11rem] flex-1 touch-none flex-col rounded-3xl border border-slate-700/80 bg-gradient-to-b from-slate-800 to-slate-900 p-5 shadow-xl transition-transform"
         style={{
-          transform: `translateX(${offsetX}px) rotate(${rotate}deg)`,
+          transform: `translate(${offset.x}px, ${offset.y}px) rotate(${rotate}deg)`,
         }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        <p className="text-lg font-semibold leading-snug">{pregunta.enunciado}</p>
-        <p className="mt-auto pt-6 text-center text-xs text-slate-500">
-          ⏱️ Responde antes de que se acabe el tiempo · desliza → A · ← D
-        </p>
+        <div className="flex flex-1 flex-col items-center justify-center gap-4">
+          <p className="text-center text-lg font-semibold leading-snug">{pregunta.enunciado}</p>
+          <p className="max-w-[280px] text-center text-xs leading-relaxed text-slate-500">
+            <span className="text-slate-400">⏱️ Desliza la tarjeta:</span>
+            <br />
+            <span className="mt-1 inline-block">
+              <span className="text-indigo-300/90">← A</span>
+              <span className="mx-1.5 text-slate-600">·</span>
+              <span className="text-indigo-300/90">↑ B</span>
+              <span className="mx-1.5 text-slate-600">·</span>
+              <span className="text-indigo-300/90">→ C</span>
+              <span className="mx-1.5 text-slate-600">·</span>
+              <span className="text-indigo-300/90">↓ D</span>
+            </span>
+            <br />
+            <span className="text-slate-600">o elige un botón abajo</span>
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">

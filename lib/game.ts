@@ -30,3 +30,35 @@ export function opcionTexto(p: PreguntaDTO, letra: OpcionLetra): string {
   const map = { A: p.opcionA, B: p.opcionB, C: p.opcionC, D: p.opcionD };
   return map[letra];
 }
+
+const LETRAS: OpcionLetra[] = ["A", "B", "C", "D"];
+
+/** Mezcla Fisher–Yates (copia el array). */
+export function shuffleArray<T>(items: T[]): T[] {
+  const arr = [...items];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/** Reordena las opciones A–D y actualiza la letra correcta. */
+export function mezclarOpcionesPregunta<T extends PreguntaDTO & { correcta: string }>(p: T): T {
+  const pares = LETRAS.map((letra) => ({
+    letraOriginal: letra,
+    texto: opcionTexto(p, letra),
+  }));
+  const mezcladas = shuffleArray(pares);
+  const correctaOriginal = p.correcta.toUpperCase() as OpcionLetra;
+  const idxCorrecta = mezcladas.findIndex((x) => x.letraOriginal === correctaOriginal);
+
+  return {
+    ...p,
+    opcionA: mezcladas[0].texto,
+    opcionB: mezcladas[1].texto,
+    opcionC: mezcladas[2].texto,
+    opcionD: mezcladas[3].texto,
+    correcta: LETRAS[idxCorrecta] ?? correctaOriginal,
+  };
+}

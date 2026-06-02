@@ -1,4 +1,5 @@
 import { hasDatabaseConfig } from "@/lib/ensure-db-env";
+import { shuffleArray } from "@/lib/game";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const mezcladas = todas.sort(() => Math.random() - 0.5).slice(0, limit);
+    const mezcladas = shuffleArray(todas).slice(0, limit);
 
     return NextResponse.json({ preguntas: mezcladas });
   } catch {

@@ -8,6 +8,8 @@ import {
   PUNTOS_POR_ACIERTO,
   SEGUNDOS_POR_PREGUNTA,
   fraseAlFallar,
+  mezclarOpcionesPregunta,
+  shuffleArray,
   type OpcionLetra,
   type PreguntaDTO,
 } from "@/lib/game";
@@ -50,7 +52,9 @@ function JugarContent() {
       .then((r) => r.json())
       .then((data: { preguntas: PreguntaConRespuesta[] }) => {
         if (!data.preguntas?.length) throw new Error("Sin preguntas");
-        setPreguntas(data.preguntas);
+        setPreguntas(
+          shuffleArray(data.preguntas).map((p) => mezclarOpcionesPregunta(p)),
+        );
       })
       .catch(() => router.replace("/onboarding"))
       .finally(() => setLoading(false));
