@@ -33,14 +33,26 @@ vercel --prod
 
 Luego en el dashboard: Settings → Git → conectar el repo.
 
-## Variables de entorno (Production)
+## Variables de entorno (Production) — obligatorio
 
-| Variable | Origen Neon |
-|----------|-------------|
-| `DATABASE_URL` | `POSTGRES_PRISMA_URL` |
-| `DIRECT_URL` | `POSTGRES_URL_NON_POOLING` |
+Vercel suele inyectar solo `POSTGRES_*`. **Añade también** (copiar valores):
+
+| Variable | Valor |
+|----------|--------|
+| `DATABASE_URL` | = `POSTGRES_PRISMA_URL` (con pooler) |
+| `DIRECT_URL` | = `POSTGRES_URL_NON_POOLING` |
+
+Marca **Production**, **Preview** y **Development**. Sin `DATABASE_URL`, el POST del ranking falla en silencio.
 
 Storage → Neon → **Connect to Project**.
+
+## Verificar después del deploy
+
+Abre `https://TU-DOMINIO.vercel.app/api/health`
+
+- `{ "ok": true, "preguntas": 12, "rankings": N }` → DB bien
+- `"Falta DATABASE_URL"` → configura variables arriba
+- Error de tabla → ejecuta `pnpm db:push` y `pnpm db:seed` contra esa misma DB
 
 ## Después del primer deploy
 

@@ -51,15 +51,23 @@ export default function JugarPage() {
       if (!session) return;
       setGuardando(true);
       try {
-        await fetch("/api/rankings", {
+        const res = await fetch("/api/rankings", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...session, puntaje: puntajeFinal }),
         });
+        if (!res.ok) {
+          const err = (await res.json().catch(() => ({}))) as { error?: string };
+          router.replace(
+            `/resultado?puntaje=${puntajeFinal}&saveError=${encodeURIComponent(err.error ?? "Error al guardar")}`,
+          );
+          return;
+        }
       } catch {
-        // Igual mostramos resultado; el usuario puede reintentar otra ronda
+        router.replace(`/resultado?puntaje=${puntajeFinal}&saveError=red`);
+        return;
       }
-      router.replace(`/resultado?puntaje=${puntajeFinal}`);
+      router.replace(`/resultado?puntaje=${puntajeFinal}&saved=1`);
     },
     [router],
   );

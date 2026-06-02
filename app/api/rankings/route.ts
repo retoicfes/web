@@ -1,7 +1,15 @@
+import { hasDatabaseConfig } from "@/lib/ensure-db-env";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
+  if (!hasDatabaseConfig()) {
+    return NextResponse.json(
+      { error: "Base de datos no configurada en el servidor" },
+      { status: 503 },
+    );
+  }
+
   try {
     const body = await req.json();
     const { apodo, departamento, municipio, colegio, puntaje } = body;
@@ -21,12 +29,21 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ ok: true, id: row.id });
-  } catch {
-    return NextResponse.json({ error: "No se pudo guardar el puntaje" }, { status: 500 });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Error desconocido";
+    console.error("[POST /api/rankings]", message);
+    return NextResponse.json(
+      { error: "No se pudo guardar el puntaje", detail: message },
+      { status: 500 },
+    );
   }
 }
 
 export async function GET(req: NextRequest) {
+  if (!hasDatabaseConfig()) {
+    return NextResponse.json({ ranking: [], error: "DB no configurada" }, { status: 503 });
+  }
+
   const scope = req.nextUrl.searchParams.get("scope") ?? "colegio";
   const departamento = req.nextUrl.searchParams.get("departamento");
   const municipio = req.nextUrl.searchParams.get("municipio");
@@ -89,7 +106,9 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({ ranking: [] });
-  } catch {
-    return NextResponse.json({ error: "Error al cargar ranking" }, { status: 500 });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Error desconocido";
+    console.error("[GET /api/rankings]", message);
+    return NextResponse.json({ error: "Error al cargar ranking", detail: message }, { status: 500 });
   }
 }

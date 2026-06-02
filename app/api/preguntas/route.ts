@@ -1,7 +1,12 @@
+import { hasDatabaseConfig } from "@/lib/ensure-db-env";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
+  if (!hasDatabaseConfig()) {
+    return NextResponse.json({ error: "Base de datos no configurada" }, { status: 503 });
+  }
+
   const limit = Math.min(Number(req.nextUrl.searchParams.get("limit") ?? 10), 20);
   const materia = req.nextUrl.searchParams.get("materia");
 
