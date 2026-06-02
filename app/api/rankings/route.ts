@@ -12,7 +12,16 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { apodo, departamento, municipio, colegio, puntaje } = body;
+    const {
+      apodo,
+      departamento,
+      municipio,
+      colegio,
+      puntaje,
+      daneDepartamento,
+      daneMunicipio,
+      codigoEstablecimiento,
+    } = body;
 
     if (!apodo || !departamento || !municipio || !colegio || typeof puntaje !== "number") {
       return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
@@ -24,6 +33,9 @@ export async function POST(req: NextRequest) {
         departamento,
         municipio,
         colegio,
+        daneDepartamento: daneDepartamento ? String(daneDepartamento) : null,
+        daneMunicipio: daneMunicipio ? String(daneMunicipio) : null,
+        codigoEstablecimiento: codigoEstablecimiento ? String(codigoEstablecimiento) : null,
         puntaje: Math.max(0, Math.min(1000, Math.round(puntaje))),
       },
     });

@@ -22,17 +22,76 @@ model PreguntaICFES {
   @@map("preguntas_icfes")
 }
 
+model Departamento {
+  id         String   @id @default(uuid())
+  codigoDane String   @unique
+  nombre     String
+  municipios Municipio[]
+
+  @@map("departamentos")
+}
+
+model Municipio {
+  id             String   @id @default(uuid())
+  codigoDane     String   @unique
+  nombre         String
+  departamentoId String
+  departamento   Departamento @relation(fields: [departamentoId], references: [id])
+  establecimientos Establecimiento[]
+
+  @@index([departamentoId])
+  @@map("municipios")
+}
+
+model Establecimiento {
+  id          String   @id @default(uuid())
+  codigo      String   @unique
+  nombre      String
+  municipioId String
+  estado      String?
+  sector      String?
+  zona        String?
+  numeroSedes Int?
+  municipio   Municipio @relation(fields: [municipioId], references: [id])
+  sedes       Sede[]
+
+  @@index([municipioId, nombre])
+  @@index([municipioId, estado])
+  @@map("establecimientos")
+}
+
+model Sede {
+  id                String   @id @default(uuid())
+  codigo            String   @unique
+  nombre            String
+  establecimientoId String
+  zona              String?
+  direccion         String?
+  telefono          String?
+  estado            String?
+  establecimiento   Establecimiento @relation(fields: [establecimientoId], references: [id])
+
+  @@index([establecimientoId])
+  @@map("sedes")
+}
+
 model Ranking {
-  id           String   @id @default(uuid())
-  apodo        String
-  departamento String
-  municipio    String
-  colegio      String
-  puntaje      Int
-  createdAt    DateTime @default(now())
+  id                    String   @id @default(uuid())
+  apodo                 String
+  departamento          String
+  municipio             String
+  colegio               String
+  daneDepartamento      String?
+  daneMunicipio         String?
+  codigoEstablecimiento String?
+  puntaje               Int
+  createdAt             DateTime @default(now())
 
   @@index([departamento, puntaje])
   @@index([departamento, municipio, puntaje])
   @@index([departamento, municipio, colegio, puntaje])
+  @@index([daneDepartamento, puntaje])
+  @@index([daneMunicipio, puntaje])
+  @@index([codigoEstablecimiento, puntaje])
   @@map("rankings")
 }

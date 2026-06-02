@@ -5,6 +5,9 @@ export type PlayerSession = {
   departamento: string;
   municipio: string;
   colegio: string;
+  daneDepartamento: string;
+  daneMunicipio: string;
+  codigoEstablecimiento: string;
 };
 
 export function getPlayerSession(): PlayerSession | null {
@@ -12,7 +15,19 @@ export function getPlayerSession(): PlayerSession | null {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as PlayerSession;
+    const parsed = JSON.parse(raw) as Partial<PlayerSession>;
+    if (
+      !parsed.apodo ||
+      !parsed.departamento ||
+      !parsed.municipio ||
+      !parsed.colegio ||
+      !parsed.daneDepartamento ||
+      !parsed.daneMunicipio ||
+      !parsed.codigoEstablecimiento
+    ) {
+      return null;
+    }
+    return parsed as PlayerSession;
   } catch {
     return null;
   }
