@@ -1,4 +1,8 @@
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import {
+  GoogleTagManager,
+  GoogleTagManagerNoScript,
+} from "@/components/analytics/GoogleTagManager";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { siteConfig } from "@/lib/site";
 import { Analytics } from "@vercel/analytics/next";
@@ -70,8 +74,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es-CO">
       <head>
         <JsonLd />
+        <GoogleTagManager />
       </head>
       <body>
+        <GoogleTagManagerNoScript />
         <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col safe-pt safe-pb">
           {children}
         </div>

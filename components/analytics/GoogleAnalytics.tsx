@@ -2,9 +2,12 @@ import Script from "next/script";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
-/** GA4 opcional: define NEXT_PUBLIC_GA_MEASUREMENT_ID en Vercel (G-XXXXXXXX). */
+/**
+ * GA4 directo (opcional). Si usas GTM con GA4 dentro, no definas esta variable
+ * para evitar doble conteo.
+ */
 export function GoogleAnalytics() {
-  if (!GA_ID) return null;
+  if (!GA_ID || process.env.NEXT_PUBLIC_GTM_ID) return null;
 
   return (
     <>

@@ -12,14 +12,17 @@
 | PWA manifest | `public/manifest.json` |
 | Vercel Analytics | `@vercel/analytics` |
 | Vercel Speed Insights | `@vercel/speed-insights` |
-| Google Analytics 4 (opcional) | `NEXT_PUBLIC_GA_MEASUREMENT_ID` |
+| Google Tag Manager | `NEXT_PUBLIC_GTM_ID=GTM-WS9J3TRR` |
+| Google Analytics 4 (opcional, sin GTM) | `NEXT_PUBLIC_GA_MEASUREMENT_ID` |
 
 ## Variables en Vercel (Production)
 
 ```env
 NEXT_PUBLIC_SITE_URL=https://retoicfes.com
-NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+NEXT_PUBLIC_GTM_ID=GTM-WS9J3TRR
 ```
+
+Configura GA4, conversiones y píxeles **dentro de Tag Manager**, no hace falta `NEXT_PUBLIC_GA_MEASUREMENT_ID` si GA4 ya está en el contenedor GTM.
 
 ## Checklist post-deploy (para rankear)
 
