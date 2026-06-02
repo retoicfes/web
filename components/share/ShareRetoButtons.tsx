@@ -3,7 +3,6 @@
 import {
   buildShareMessage,
   buildShareTextBody,
-  canNativeShare,
   copyShareText,
   facebookShareUrl,
   getShareUrl,
@@ -13,10 +12,9 @@ import {
   whatsAppShareUrl,
   type ShareRetoContext,
 } from "@/lib/share";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 
 type Props = ShareRetoContext & {
-  /** Botón principal más grande (pantalla de resultado). */
   destacado?: boolean;
   className?: string;
 };
@@ -37,9 +35,102 @@ function IconTelegram({ className }: { className?: string }) {
   );
 }
 
+function IconShare({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7" />
+      <path d="M16 6l-4-4-4 4" />
+      <path d="M12 2v13" />
+    </svg>
+  );
+}
+
+function IconCopy({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <rect x="9" y="9" width="13" height="13" rx="2" />
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </svg>
+  );
+}
+
+function IconCheck({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
+
+function IconX({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
+
+function IconFacebook({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+    </svg>
+  );
+}
+
+function IconActionButton({
+  label,
+  onClick,
+  children,
+  className = "",
+}: {
+  label: string;
+  onClick: () => void;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      className={`flex h-12 flex-1 items-center justify-center rounded-xl border border-slate-600 bg-slate-800/80 text-slate-200 transition active:scale-95 hover:bg-slate-700 ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function ShareRetoButtons({ puntaje, apodo, colegio, destacado = false, className = "" }: Props) {
   const [copiado, setCopiado] = useState(false);
-  const [mostrarMas, setMostrarMas] = useState(false);
 
   const ctx = useMemo(() => ({ puntaje, apodo, colegio }), [puntaje, apodo, colegio]);
   const mensaje = useMemo(() => buildShareMessage(ctx), [ctx]);
@@ -58,8 +149,9 @@ export function ShareRetoButtons({ puntaje, apodo, colegio, destacado = false, c
   }, [mensaje]);
 
   const compartirNativo = useCallback(async () => {
-    await nativeShare(ctx);
-  }, [ctx]);
+    const ok = await nativeShare(ctx);
+    if (!ok) await copyShareText(mensaje);
+  }, [ctx, mensaje]);
 
   const btnPrimario =
     "flex w-full items-center justify-center gap-3 rounded-2xl py-4 font-bold text-white shadow-lg transition active:scale-[0.98]";
@@ -93,54 +185,34 @@ export function ShareRetoButtons({ puntaje, apodo, colegio, destacado = false, c
       </button>
 
       <div className="flex gap-2">
-        {canNativeShare() ? (
-          <button
-            type="button"
-            onClick={() => void compartirNativo()}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-600 bg-slate-800/80 py-2.5 text-sm text-slate-200"
-          >
-            <span aria-hidden>📤</span>
-            Compartir
-          </button>
-        ) : null}
-        <button
-          type="button"
-          onClick={() => void copiar()}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-600 bg-slate-800/80 py-2.5 text-sm text-slate-200"
-        >
-          {copiado ? "¡Copiado!" : "Copiar mensaje"}
-        </button>
-        <button
-          type="button"
-          onClick={() => setMostrarMas((v) => !v)}
-          className="rounded-xl border border-slate-600 bg-slate-800/80 px-3 py-2.5 text-sm text-slate-400"
-          aria-expanded={mostrarMas}
-          aria-label="Más redes"
-        >
-          ···
-        </button>
-      </div>
+        <IconActionButton label="Compartir" onClick={() => void compartirNativo()}>
+          <IconShare className="h-5 w-5" />
+        </IconActionButton>
 
-      {mostrarMas ? (
-        <div className="flex justify-center gap-3 pt-1">
-          <button
-            type="button"
-            onClick={() => abrir(twitterShareUrl(mensaje, url))}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-800 text-lg hover:bg-slate-700"
-            title="Compartir en X"
-          >
-            𝕏
-          </button>
-          <button
-            type="button"
-            onClick={() => abrir(facebookShareUrl(url))}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1877F2] text-lg text-white hover:opacity-90"
-            title="Facebook"
-          >
-            f
-          </button>
-        </div>
-      ) : null}
+        <IconActionButton label={copiado ? "Copiado" : "Copiar mensaje"} onClick={() => void copiar()}>
+          {copiado ? (
+            <IconCheck className="h-5 w-5 text-green-400" />
+          ) : (
+            <IconCopy className="h-5 w-5" />
+          )}
+        </IconActionButton>
+
+        <IconActionButton
+          label="Compartir en X"
+          onClick={() => abrir(twitterShareUrl(mensaje, url))}
+          className="hover:text-white"
+        >
+          <IconX className="h-5 w-5" />
+        </IconActionButton>
+
+        <IconActionButton
+          label="Compartir en Facebook"
+          onClick={() => abrir(facebookShareUrl(url))}
+          className="border-[#1877F2]/40 bg-[#1877F2]/15 text-[#1877F2] hover:bg-[#1877F2]/25"
+        >
+          <IconFacebook className="h-5 w-5" />
+        </IconActionButton>
+      </div>
     </div>
   );
 }
