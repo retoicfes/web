@@ -64,6 +64,8 @@ export async function GET(req: NextRequest) {
         ranking: rows.map((r) => ({
           apodo: r.apodo,
           puntaje: r.puntaje,
+          departamento: r.departamento,
+          municipio: r.municipio,
           colegio: r.colegio,
         })),
       });
@@ -79,6 +81,7 @@ export async function GET(req: NextRequest) {
         ranking: rows.map((r) => ({
           apodo: r.apodo,
           puntaje: r.puntaje,
+          municipio: r.municipio,
           colegio: r.colegio,
         })),
       });
