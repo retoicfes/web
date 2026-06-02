@@ -1,3 +1,5 @@
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
@@ -27,6 +29,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col safe-pt safe-pb">
           {children}
         </div>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
