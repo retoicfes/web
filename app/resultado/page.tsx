@@ -1,5 +1,6 @@
 "use client";
 
+import { ShareRetoButtons } from "@/components/share/ShareRetoButtons";
 import { MobileShell } from "@/components/ui/MobileShell";
 import { getPlayerSession } from "@/lib/session";
 import Link from "next/link";
@@ -35,6 +36,14 @@ function ResultadoContent() {
           </p>
         ) : null}
       </div>
+      <ShareRetoButtons
+        destacado
+        puntaje={puntaje}
+        apodo={session?.apodo}
+        colegio={session?.colegio}
+        className="border-t border-slate-800 pt-4"
+      />
+
       <div className="space-y-3">
         <Link
           href="/jugar?nueva=1"

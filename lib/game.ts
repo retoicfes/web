@@ -1,5 +1,7 @@
 export const PREGUNTAS_POR_RONDA = 10;
 export const PUNTOS_POR_ACIERTO = 10;
+/** Tiempo máximo por pregunta antes de contar como fallo. */
+export const SEGUNDOS_POR_PREGUNTA = 30;
 
 export type OpcionLetra = "A" | "B" | "C" | "D";
 

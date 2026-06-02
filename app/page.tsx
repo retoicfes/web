@@ -1,5 +1,7 @@
 "use client";
 
+import { HomeHero } from "@/components/home/HomeHero";
+import { ShareRetoButtons } from "@/components/share/ShareRetoButtons";
 import { getCompletedRound } from "@/lib/round";
 import { getPlayerSession } from "@/lib/session";
 import Link from "next/link";
@@ -29,17 +31,20 @@ export default function HomePage() {
 
   return (
     <main className="flex flex-1 flex-col justify-between px-6 py-10">
-      <div className="space-y-4 text-center">
-        <p className="text-sm font-semibold uppercase tracking-widest text-indigo-400">
-          Saber 11 · Colombia
-        </p>
-        <h1 className="text-4xl font-black leading-tight">
-          Reto <span className="text-indigo-400">ICFES</span>
-        </h1>
-        <p className="text-slate-400">
-          Responde rápido, sube en el ranking de tu colegio y comparte el reto en el
-          grupo de WhatsApp 📱
-        </p>
+      <div className="space-y-4">
+        <HomeHero />
+        <div className="space-y-2 text-center">
+          <p className="text-sm font-semibold uppercase tracking-widest text-indigo-400">
+            Saber 11 · Colombia
+          </p>
+          <h1 className="text-4xl font-black leading-tight">
+            Reto <span className="text-indigo-400">ICFES</span>
+          </h1>
+          <p className="text-slate-400">
+            Como el Mundial, pero de conocimiento: retos rápidos, ranking por colegio y
+            reta a tu curso por WhatsApp 📱
+          </p>
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -55,6 +60,7 @@ export default function HomePage() {
         >
           Ver rankings 🏆
         </Link>
+        <ShareRetoButtons className="pt-2" />
       </div>
     </main>
   );

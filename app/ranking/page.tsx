@@ -1,5 +1,6 @@
 "use client";
 
+import { ShareRetoButtons } from "@/components/share/ShareRetoButtons";
 import { MobileShell } from "@/components/ui/MobileShell";
 import { usePlayerSession } from "@/lib/use-player-session";
 import { getCompletedRound } from "@/lib/round";
@@ -178,7 +179,12 @@ export default function RankingPage() {
       )}
 
       {rondaCompleta ? (
-        <div className="mt-6 space-y-2">
+        <div className="mt-6 space-y-4">
+          <ShareRetoButtons
+            puntaje={getCompletedRound()?.puntaje}
+            apodo={session?.apodo}
+            colegio={session?.colegio}
+          />
           <Link
             href={`/resultado?puntaje=${getCompletedRound()?.puntaje ?? 0}&saved=1`}
             className="block rounded-xl border border-slate-700 py-3 text-center text-sm text-slate-300"

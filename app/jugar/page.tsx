@@ -6,6 +6,7 @@ import { MobileShell } from "@/components/ui/MobileShell";
 import {
   PREGUNTAS_POR_RONDA,
   PUNTOS_POR_ACIERTO,
+  SEGUNDOS_POR_PREGUNTA,
   fraseAlFallar,
   type OpcionLetra,
   type PreguntaDTO,
@@ -32,6 +33,7 @@ function JugarContent() {
   } | null>(null);
   const [locked, setLocked] = useState(false);
   const [guardando, setGuardando] = useState(false);
+  const [segundosRestantes, setSegundosRestantes] = useState(SEGUNDOS_POR_PREGUNTA);
 
   useEffect(() => {
     if (!getPlayerSession()) {
@@ -82,31 +84,68 @@ function JugarContent() {
     [router],
   );
 
-  const responder = (letra: OpcionLetra) => {
-    if (locked || !preguntas[index]) return;
-    setLocked(true);
-    const actual = preguntas[index];
-    const correcto = actual.correcta.toUpperCase() === letra;
-    const nuevoPuntaje = correcto ? puntaje + PUNTOS_POR_ACIERTO : puntaje;
+  const avanzarPregunta = useCallback(
+    (nuevoPuntaje: number) => {
+      setTimeout(() => {
+        setFeedback(null);
+        const siguiente = index + 1;
+        if (siguiente >= preguntas.length) {
+          finalizar(nuevoPuntaje);
+          return;
+        }
+        setIndex(siguiente);
+        setSegundosRestantes(SEGUNDOS_POR_PREGUNTA);
+        setLocked(false);
+      }, 1400);
+    },
+    [index, preguntas.length, finalizar],
+  );
 
-    setFeedback({
-      correcto,
-      explicacion: actual.explicacion,
-      fraseExtra: correcto ? undefined : fraseAlFallar(),
-    });
-    setPuntaje(nuevoPuntaje);
+  const procesarRespuesta = useCallback(
+    (letra: OpcionLetra | null) => {
+      if (locked || !preguntas[index]) return;
+      setLocked(true);
+      const actual = preguntas[index];
+      const correcto = letra != null && actual.correcta.toUpperCase() === letra;
+      const nuevoPuntaje = correcto ? puntaje + PUNTOS_POR_ACIERTO : puntaje;
 
-    setTimeout(() => {
-      setFeedback(null);
-      const siguiente = index + 1;
-      if (siguiente >= preguntas.length) {
-        finalizar(nuevoPuntaje);
-        return;
+      setFeedback({
+        correcto,
+        explicacion: actual.explicacion,
+        fraseExtra: correcto
+          ? undefined
+          : letra == null
+            ? "⏱️ Se acabó el tiempo — la próxima la tienes"
+            : fraseAlFallar(),
+      });
+      setPuntaje(nuevoPuntaje);
+      avanzarPregunta(nuevoPuntaje);
+    },
+    [locked, preguntas, index, puntaje, avanzarPregunta],
+  );
+
+  const responder = useCallback(
+    (letra: OpcionLetra) => procesarRespuesta(letra),
+    [procesarRespuesta],
+  );
+
+  useEffect(() => {
+    if (loading || guardando || locked || !preguntas.length) return;
+
+    setSegundosRestantes(SEGUNDOS_POR_PREGUNTA);
+    let restante = SEGUNDOS_POR_PREGUNTA;
+
+    const id = window.setInterval(() => {
+      restante -= 1;
+      setSegundosRestantes(restante);
+      if (restante <= 0) {
+        window.clearInterval(id);
+        procesarRespuesta(null);
       }
-      setIndex(siguiente);
-      setLocked(false);
-    }, 1400);
-  };
+    }, 1000);
+
+    return () => window.clearInterval(id);
+  }, [index, loading, guardando, locked, preguntas.length, procesarRespuesta]);
 
   if (loading || guardando) {
     return (
@@ -132,6 +171,8 @@ function JugarContent() {
         total={preguntas.length}
         onAnswer={responder}
         disabled={locked}
+        segundosRestantes={segundosRestantes}
+        timerPausado={locked}
       />
       {feedback ? (
         <FeedbackOverlay

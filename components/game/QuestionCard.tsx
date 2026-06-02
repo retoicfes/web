@@ -1,5 +1,6 @@
 "use client";
 
+import { QuestionTimer } from "@/components/game/QuestionTimer";
 import type { OpcionLetra, PreguntaDTO } from "@/lib/game";
 import { opcionTexto } from "@/lib/game";
 import { useState } from "react";
@@ -10,9 +11,19 @@ type Props = {
   total: number;
   onAnswer: (letra: OpcionLetra) => void;
   disabled?: boolean;
+  segundosRestantes?: number;
+  timerPausado?: boolean;
 };
 
-export function QuestionCard({ pregunta, index, total, onAnswer, disabled }: Props) {
+export function QuestionCard({
+  pregunta,
+  index,
+  total,
+  onAnswer,
+  disabled,
+  segundosRestantes,
+  timerPausado,
+}: Props) {
   const [offsetX, setOffsetX] = useState(0);
   const [dragging, setDragging] = useState(false);
   let startX = 0;
@@ -40,14 +51,18 @@ export function QuestionCard({ pregunta, index, total, onAnswer, disabled }: Pro
 
   return (
     <section className="flex flex-1 flex-col gap-4">
-      <div className="flex items-center justify-between text-xs text-slate-400">
+      <div className="flex items-center justify-between gap-2 text-xs text-slate-400">
         <span className="rounded-full bg-slate-800 px-3 py-1 font-medium text-indigo-300">
           {pregunta.materia}
         </span>
-        <span>
+        <span className="shrink-0 tabular-nums">
           {index + 1} / {total}
         </span>
       </div>
+
+      {segundosRestantes != null ? (
+        <QuestionTimer segundosRestantes={segundosRestantes} pausado={timerPausado} />
+      ) : null}
 
       <div
         className="relative flex flex-1 touch-pan-y flex-col rounded-3xl border border-slate-700/80 bg-gradient-to-b from-slate-800 to-slate-900 p-5 shadow-xl transition-transform"
@@ -60,7 +75,7 @@ export function QuestionCard({ pregunta, index, total, onAnswer, disabled }: Pro
       >
         <p className="text-lg font-semibold leading-snug">{pregunta.enunciado}</p>
         <p className="mt-auto pt-6 text-center text-xs text-slate-500">
-          Desliza → A · ← D o toca un botón abajo
+          ⏱️ Responde antes de que se acabe el tiempo · desliza → A · ← D
         </p>
       </div>
 
