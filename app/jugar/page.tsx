@@ -3,9 +3,9 @@
 import { FeedbackOverlay } from "@/components/game/FeedbackOverlay";
 import { QuestionCard } from "@/components/game/QuestionCard";
 import { MobileShell } from "@/components/ui/MobileShell";
+import { calcularResultadoICFES } from "@/lib/icfes-puntaje";
 import {
   PREGUNTAS_POR_RONDA,
-  PUNTOS_POR_ACIERTO,
   SEGUNDOS_POR_PREGUNTA,
   fraseAlFallar,
   mezclarOpcionesPregunta,
@@ -16,9 +16,11 @@ import {
 import { clearRoundComplete, getCompletedRound, markRoundComplete } from "@/lib/round";
 import { getPlayerSession } from "@/lib/session";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 
 type PreguntaConRespuesta = PreguntaDTO & { correcta: string; explicacion: string };
+
+type RespuestaRegistro = { materia: string; correcta: boolean };
 
 function JugarContent() {
   const router = useRouter();
@@ -26,7 +28,6 @@ function JugarContent() {
   const nuevaRonda = searchParams.get("nueva") === "1";
   const [preguntas, setPreguntas] = useState<PreguntaConRespuesta[]>([]);
   const [index, setIndex] = useState(0);
-  const [puntaje, setPuntaje] = useState(0);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState<{
     correcto: boolean;
@@ -36,6 +37,9 @@ function JugarContent() {
   const [locked, setLocked] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [segundosRestantes, setSegundosRestantes] = useState(SEGUNDOS_POR_PREGUNTA);
+  const respuestasRef = useRef<RespuestaRegistro[]>([]);
+  const [aciertos, setAciertos] = useState(0);
+  const [respondidas, setRespondidas] = useState(0);
 
   useEffect(() => {
     if (!getPlayerSession()) {
@@ -44,6 +48,9 @@ function JugarContent() {
     }
     if (nuevaRonda) {
       clearRoundComplete();
+      respuestasRef.current = [];
+      setAciertos(0);
+      setRespondidas(0);
     } else if (getCompletedRound()) {
       router.replace("/ranking");
       return;
@@ -52,6 +59,9 @@ function JugarContent() {
       .then((r) => r.json())
       .then((data: { preguntas: PreguntaConRespuesta[] }) => {
         if (!data.preguntas?.length) throw new Error("Sin preguntas");
+        respuestasRef.current = [];
+        setAciertos(0);
+        setRespondidas(0);
         setPreguntas(
           shuffleArray(data.preguntas).map((p) => mezclarOpcionesPregunta(p)),
         );
@@ -61,49 +71,48 @@ function JugarContent() {
   }, [router, nuevaRonda]);
 
   const finalizar = useCallback(
-    async (puntajeFinal: number) => {
+    async (resultado: ReturnType<typeof calcularResultadoICFES>) => {
       const session = getPlayerSession();
       if (!session) return;
-      markRoundComplete(puntajeFinal);
+      markRoundComplete(resultado);
       setGuardando(true);
+      const global = resultado.puntajeGlobal;
       try {
         const res = await fetch("/api/rankings", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...session, puntaje: puntajeFinal }),
+          body: JSON.stringify({ ...session, puntaje: global }),
         });
         if (!res.ok) {
           const err = (await res.json().catch(() => ({}))) as { error?: string };
           router.replace(
-            `/resultado?puntaje=${puntajeFinal}&saveError=${encodeURIComponent(err.error ?? "Error al guardar")}`,
+            `/resultado?puntaje=${global}&saveError=${encodeURIComponent(err.error ?? "Error al guardar")}`,
           );
           return;
         }
       } catch {
-        router.replace(`/resultado?puntaje=${puntajeFinal}&saveError=red`);
+        router.replace(`/resultado?puntaje=${global}&saveError=red`);
         return;
       }
-      router.replace(`/resultado?puntaje=${puntajeFinal}&saved=1`);
+      router.replace(`/resultado?puntaje=${global}&saved=1`);
     },
     [router],
   );
 
-  const avanzarPregunta = useCallback(
-    (nuevoPuntaje: number) => {
-      setTimeout(() => {
-        setFeedback(null);
-        const siguiente = index + 1;
-        if (siguiente >= preguntas.length) {
-          finalizar(nuevoPuntaje);
-          return;
-        }
-        setIndex(siguiente);
-        setSegundosRestantes(SEGUNDOS_POR_PREGUNTA);
-        setLocked(false);
-      }, 1400);
-    },
-    [index, preguntas.length, finalizar],
-  );
+  const avanzarPregunta = useCallback(() => {
+    setTimeout(() => {
+      setFeedback(null);
+      const siguiente = index + 1;
+      if (siguiente >= preguntas.length) {
+        const resultado = calcularResultadoICFES(respuestasRef.current);
+        void finalizar(resultado);
+        return;
+      }
+      setIndex(siguiente);
+      setSegundosRestantes(SEGUNDOS_POR_PREGUNTA);
+      setLocked(false);
+    }, 1400);
+  }, [index, preguntas.length, finalizar]);
 
   const procesarRespuesta = useCallback(
     (letra: OpcionLetra | null) => {
@@ -111,7 +120,10 @@ function JugarContent() {
       setLocked(true);
       const actual = preguntas[index];
       const correcto = letra != null && actual.correcta.toUpperCase() === letra;
-      const nuevoPuntaje = correcto ? puntaje + PUNTOS_POR_ACIERTO : puntaje;
+
+      respuestasRef.current.push({ materia: actual.materia, correcta: correcto });
+      setRespondidas((n) => n + 1);
+      if (correcto) setAciertos((n) => n + 1);
 
       setFeedback({
         correcto,
@@ -122,10 +134,9 @@ function JugarContent() {
             ? "⏱️ Se acabó el tiempo — la próxima la tienes"
             : fraseAlFallar(),
       });
-      setPuntaje(nuevoPuntaje);
-      avanzarPregunta(nuevoPuntaje);
+      avanzarPregunta();
     },
-    [locked, preguntas, index, puntaje, avanzarPregunta],
+    [locked, preguntas, index, avanzarPregunta],
   );
 
   const responder = useCallback(
@@ -167,7 +178,7 @@ function JugarContent() {
   return (
     <MobileShell
       title={getPlayerSession()?.apodo ?? "Reto"}
-      subtitle={`Puntaje: ${puntaje} pts`}
+      subtitle={`${aciertos}/${respondidas} aciertos · escala ICFES 0–500`}
     >
       <QuestionCard
         pregunta={actual}

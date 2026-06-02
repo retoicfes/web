@@ -1,15 +1,10 @@
 "use client";
 
+import { AREAS_ICFES } from "@/lib/icfes-puntaje";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-export const AREAS_SABER_11 = [
-  "Lectura Crítica",
-  "Matemáticas",
-  "Ciencias Naturales",
-  "Inglés",
-  "Sociales y Ciudadanas",
-] as const;
+export const AREAS_SABER_11 = AREAS_ICFES;
 
 /** Rutas en public/images/ (se prueba WebP y luego PNG). */
 export const HOME_HERO_IMAGE_CANDIDATES = [

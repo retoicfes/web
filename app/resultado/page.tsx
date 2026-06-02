@@ -1,11 +1,13 @@
 "use client";
 
+import { IcfesReporte } from "@/components/resultado/IcfesReporte";
 import { ShareRetoButtons } from "@/components/share/ShareRetoButtons";
 import { MobileShell } from "@/components/ui/MobileShell";
+import { getResultadoICFES } from "@/lib/round";
 import { getPlayerSession } from "@/lib/session";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 
 function IconTrophy({ className }: { className?: string }) {
   return (
@@ -31,10 +33,12 @@ function IconTrophy({ className }: { className?: string }) {
 
 function ResultadoContent() {
   const params = useSearchParams();
-  const puntaje = Number(params.get("puntaje") ?? 0);
+  const puntajeUrl = Number(params.get("puntaje") ?? 0);
   const saveError = params.get("saveError");
   const saved = params.get("saved") === "1";
   const session = getPlayerSession();
+  const resultado = useMemo(() => getResultadoICFES(), []);
+  const puntajeGlobal = resultado?.puntajeGlobal ?? puntajeUrl;
 
   return (
     <MobileShell title="¡Ronda terminada!" subtitle={session?.colegio}>
@@ -47,20 +51,29 @@ function ResultadoContent() {
           . Revisa /api/health en producción y variables DATABASE_URL en Vercel.
         </p>
       ) : saved ? (
-        <p className="mb-4 text-center text-sm text-green-400">Puntaje guardado en el ranking ✓</p>
+        <p className="mb-4 text-center text-sm text-green-400">
+          Puntaje global guardado en el ranking ✓
+        </p>
       ) : null}
-      <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
-        <p className="text-6xl font-black text-indigo-400">{puntaje}</p>
-        <p className="text-slate-400">puntos en esta ronda</p>
-        {session ? (
-          <p className="text-sm text-slate-500">
-            {session.apodo} · {session.municipio}, {session.departamento}
-          </p>
-        ) : null}
-      </div>
+
+      {resultado ? (
+        <IcfesReporte resultado={resultado} />
+      ) : (
+        <div className="flex flex-col items-center gap-2 py-6 text-center">
+          <p className="text-5xl font-black tabular-nums text-indigo-400">{puntajeGlobal}</p>
+          <p className="text-slate-400">puntaje global /500</p>
+        </div>
+      )}
+
+      {session ? (
+        <p className="text-center text-sm text-slate-500">
+          {session.apodo} · {session.municipio}, {session.departamento}
+        </p>
+      ) : null}
+
       <ShareRetoButtons
         destacado
-        puntaje={puntaje}
+        puntaje={puntajeGlobal}
         apodo={session?.apodo}
         colegio={session?.colegio}
         className="border-t border-slate-800 pt-4"

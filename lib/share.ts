@@ -19,14 +19,14 @@ export function buildShareTextBody(ctx: ShareRetoContext = {}): string {
   if (puntaje != null && puntaje > 0 && apodo) {
     const lugar = colegio ? `\n🏫 ${colegio}` : "";
     return (
-      `🔥 ¡${apodo} hizo ${puntaje} pts en Reto ICFES!${lugar}\n\n` +
+      `🔥 ¡${apodo} sacó ${puntaje}/500 en Reto ICFES!${lugar}\n\n` +
       `Retos rápidos para Saber 11 (grado 11°). ¿Me ganas?`
     );
   }
 
   if (puntaje != null && puntaje > 0) {
     return (
-      `🔥 ¡Hice ${puntaje} pts en Reto ICFES!\n\n` +
+      `🔥 ¡Saqué ${puntaje}/500 en Reto ICFES!\n\n` +
       `Practica Saber 11 con retos tipo swipe y sube en el ranking de tu colegio.`
     );
   }
