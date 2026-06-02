@@ -2,6 +2,9 @@
 
 import { MobileShell } from "@/components/ui/MobileShell";
 import { usePlayerSession } from "@/lib/use-player-session";
+import { getCompletedRound } from "@/lib/round";
+import { useRoundComplete } from "@/lib/use-round-complete";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 type Scope = "colegio" | "municipio" | "departamento" | "nacional";
@@ -48,8 +51,16 @@ function etiquetaPuntos(f: Fila, scope: Scope): string {
   return `${f.promedio ?? f.puntaje} pts`;
 }
 
+function posicionRanking(index: number): string {
+  if (index === 0) return "🥇";
+  if (index === 1) return "🥈";
+  if (index === 2) return "🥉";
+  return String(index + 1);
+}
+
 export default function RankingPage() {
   const session = usePlayerSession();
+  const rondaCompleta = useRoundComplete();
   const [scope, setScope] = useState<Scope>("colegio");
   const [filas, setFilas] = useState<Fila[]>([]);
   const [loading, setLoading] = useState(true);
@@ -97,20 +108,24 @@ export default function RankingPage() {
   ];
 
   return (
-    <MobileShell title="Ranking" subtitle={subtituloRanking(scope, session)} backHref="/">
+    <MobileShell
+      title="Ranking"
+      subtitle={subtituloRanking(scope, session)}
+      backHref={rondaCompleta ? undefined : "/"}
+    >
       {!session && scope !== "nacional" ? (
         <p className="text-sm text-amber-300">
           Juega una ronda primero para ver rankings filtrados a tu ubicación.
         </p>
       ) : null}
 
-      <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
+      <div className="mb-4 grid grid-cols-2 gap-2">
         {tabs.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setScope(t.id)}
-            className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium ${
+            className={`rounded-xl px-3 py-2.5 text-center text-sm font-medium leading-tight ${
               scope === t.id ? "bg-indigo-500 text-white" : "bg-slate-800 text-slate-400"
             }`}
           >
@@ -140,7 +155,13 @@ export default function RankingPage() {
                 key={`${f.departamento ?? ""}-${f.municipio ?? ""}-${f.apodo}-${i}`}
                 className="flex items-center gap-3 rounded-xl bg-slate-800/80 px-4 py-3"
               >
-                <span className="w-6 text-lg font-bold text-indigo-400">{i + 1}</span>
+                <span
+                  className={`flex w-8 shrink-0 items-center justify-center font-bold text-indigo-400 ${
+                    i < 3 ? "text-xl" : "text-lg"
+                  }`}
+                >
+                  {posicionRanking(i)}
+                </span>
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold leading-tight">{f.apodo}</p>
                   {detalle ? (
@@ -155,6 +176,23 @@ export default function RankingPage() {
           })}
         </ol>
       )}
+
+      {rondaCompleta ? (
+        <div className="mt-6 space-y-2">
+          <Link
+            href={`/resultado?puntaje=${getCompletedRound()?.puntaje ?? 0}&saved=1`}
+            className="block rounded-xl border border-slate-700 py-3 text-center text-sm text-slate-300"
+          >
+            Ver mi última ronda
+          </Link>
+          <Link
+            href="/jugar?nueva=1"
+            className="block rounded-2xl bg-indigo-500 py-3 text-center font-bold text-white"
+          >
+            Jugar otra vez
+          </Link>
+        </div>
+      ) : null}
     </MobileShell>
   );
 }
