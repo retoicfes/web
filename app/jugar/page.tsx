@@ -125,7 +125,6 @@ function JugarContent() {
     <MobileShell
       title={getPlayerSession()?.apodo ?? "Reto"}
       subtitle={`Puntaje: ${puntaje} pts`}
-      backHref="/"
     >
       <QuestionCard
         pregunta={actual}
