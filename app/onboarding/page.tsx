@@ -6,6 +6,7 @@ import {
   colegiosDe,
   municipiosDe,
 } from "@/data/colombia";
+import { clearRoundComplete } from "@/lib/round";
 import { savePlayerSession, type PlayerSession } from "@/lib/session";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -39,6 +40,7 @@ export default function OnboardingPage() {
       colegio,
     };
     savePlayerSession(session);
+    clearRoundComplete();
     router.push("/jugar");
   };
 

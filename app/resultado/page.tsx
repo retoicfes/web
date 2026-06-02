@@ -37,7 +37,7 @@ function ResultadoContent() {
       </div>
       <div className="space-y-3">
         <Link
-          href="/jugar"
+          href="/jugar?nueva=1"
           className="block rounded-2xl bg-indigo-500 py-4 text-center font-bold text-white"
         >
           Jugar otra vez

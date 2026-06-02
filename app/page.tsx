@@ -1,5 +1,6 @@
 "use client";
 
+import { getCompletedRound } from "@/lib/round";
 import { getPlayerSession } from "@/lib/session";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -12,7 +13,7 @@ export default function HomePage() {
   useEffect(() => {
     const session = getPlayerSession();
     if (session) {
-      router.replace("/jugar");
+      router.replace(getCompletedRound() ? "/ranking" : "/jugar");
       return;
     }
     setReady(true);

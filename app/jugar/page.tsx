@@ -10,14 +10,17 @@ import {
   type OpcionLetra,
   type PreguntaDTO,
 } from "@/lib/game";
+import { clearRoundComplete, getCompletedRound, markRoundComplete } from "@/lib/round";
 import { getPlayerSession } from "@/lib/session";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useState } from "react";
 
 type PreguntaConRespuesta = PreguntaDTO & { correcta: string; explicacion: string };
 
-export default function JugarPage() {
+function JugarContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nuevaRonda = searchParams.get("nueva") === "1";
   const [preguntas, setPreguntas] = useState<PreguntaConRespuesta[]>([]);
   const [index, setIndex] = useState(0);
   const [puntaje, setPuntaje] = useState(0);
@@ -35,6 +38,12 @@ export default function JugarPage() {
       router.replace("/onboarding");
       return;
     }
+    if (nuevaRonda) {
+      clearRoundComplete();
+    } else if (getCompletedRound()) {
+      router.replace("/ranking");
+      return;
+    }
     fetch(`/api/preguntas?limit=${PREGUNTAS_POR_RONDA}`)
       .then((r) => r.json())
       .then((data: { preguntas: PreguntaConRespuesta[] }) => {
@@ -43,12 +52,13 @@ export default function JugarPage() {
       })
       .catch(() => router.replace("/onboarding"))
       .finally(() => setLoading(false));
-  }, [router]);
+  }, [router, nuevaRonda]);
 
   const finalizar = useCallback(
     async (puntajeFinal: number) => {
       const session = getPlayerSession();
       if (!session) return;
+      markRoundComplete(puntajeFinal);
       setGuardando(true);
       try {
         const res = await fetch("/api/rankings", {
@@ -132,5 +142,13 @@ export default function JugarPage() {
         />
       ) : null}
     </MobileShell>
+  );
+}
+
+export default function JugarPage() {
+  return (
+    <Suspense fallback={<p className="p-6 text-center text-slate-400">Cargando…</p>}>
+      <JugarContent />
+    </Suspense>
   );
 }
