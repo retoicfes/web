@@ -17,6 +17,17 @@ body {
   font-family: var(--font-sans);
 }
 
+@keyframes timerPop {
+  0% {
+    transform: scale(1.35);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 @supports (padding: max(0px)) {
   .safe-pb {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));

@@ -160,7 +160,7 @@ function RankingContent() {
     <MobileShell
       title="Ranking"
       subtitle={subtituloRanking(scope, ubicacion)}
-      backHref={rondaCompleta ? undefined : "/"}
+      backHref="/"
     >
       {esVisitante && scope === "nacional" ? (
         <p className="mb-3 text-sm text-slate-400">

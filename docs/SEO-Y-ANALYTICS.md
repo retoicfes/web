@@ -1,52 +1,92 @@
-# SEO, analytics y posicionamiento — Reto ICFES
+# SEO y posicionamiento — Reto ICFES
 
-## Ya integrado en el código
+## Mapa técnico (código)
 
-| Herramienta | Estado |
-|-------------|--------|
-| Meta title / description / keywords | `app/layout.tsx` + `lib/site.ts` |
-| Open Graph + imagen social | `app/opengraph-image.tsx` |
-| `robots.txt` | `app/robots.ts` |
-| `sitemap.xml` | `app/sitemap.ts` |
-| JSON-LD (WebApplication) | `components/seo/JsonLd.tsx` |
-| PWA manifest | `public/manifest.json` |
-| Vercel Analytics | `@vercel/analytics` |
-| Vercel Speed Insights | `@vercel/speed-insights` |
-| Google Tag Manager | `NEXT_PUBLIC_GTM_ID=GTM-WS9J3TRR` |
-| Google Analytics 4 (opcional, sin GTM) | `NEXT_PUBLIC_GA_MEASUREMENT_ID` |
+| Pieza | Archivo | Notas |
+|-------|---------|--------|
+| Config global | `lib/site.ts` | Nombre, URL, descripción, keywords |
+| Metadatos por ruta | `lib/seo.ts` → `pageMetadata()` | Canonical, OG, Twitter, robots |
+| Layout raíz | `app/layout.tsx` | Defaults + GTM/GA + JSON-LD |
+| Home SSR + FAQ | `app/page.tsx`, `components/seo/HomeSeoContent.tsx` | Texto indexable + preguntas |
+| JSON-LD | `components/seo/JsonLd.tsx` | Organization, WebSite, WebApplication, FAQPage |
+| Sitemap | `app/sitemap.ts` | Solo rutas públicas (`SITEMAP_ROUTES`) |
+| Robots | `app/robots.ts` | Bloquea `/api/`, `/admin/`, `/jugar`, `/resultado` |
+| OG imagen | `app/opengraph-image.tsx` | 1200×630 |
+| Favicon / Apple | `app/icon.tsx`, `app/apple-icon.tsx` | |
+| PWA | `public/manifest.json` | |
+
+### Rutas indexables (sí rankear)
+
+- `/` — landing + FAQ
+- `/ranking` — ranking colegios
+- `/onboarding` — entrada al juego
+
+### Rutas no indexables (no competir consigo mismas)
+
+- `/jugar`, `/resultado` — `noindex` + fuera del sitemap
+- `/admin/*` — privado
 
 ## Variables en Vercel (Production)
 
 ```env
 NEXT_PUBLIC_SITE_URL=https://retoicfes.com
 NEXT_PUBLIC_GTM_ID=GTM-WS9J3TRR
+# Opcional: verificación Search Console (meta tag)
+NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=xxxxxxxx
+# GA4 directo (si no usas solo GTM para GA)
+NEXT_PUBLIC_GA_MEASUREMENT_ID=G-53L2DLHYFF
 ```
 
-GA4 directo: `NEXT_PUBLIC_GA_MEASUREMENT_ID=G-53L2DLHYFF` (ya en el código).
+**Evita doble conteo:** si GA4 está dentro de GTM, no actives también el gtag directo con el mismo ID.
 
-**Importante:** Si también tienes un tag GA4 dentro de GTM, desactívalo allí para no contar visitas dos veces. Usa GTM para Ads, Meta Pixel, etc., y gtag directo para GA4 (o al revés).
+## Checklist operativo (tú, fuera del código)
 
-## Checklist post-deploy (para rankear)
+Marca cuando esté hecho:
 
-1. **Dominio** `retoicfes.com` apuntando al proyecto Vercel.
-2. **Google Search Console** — verificar propiedad, enviar sitemap: `https://retoicfes.com/sitemap.xml`
-3. **Bing Webmaster Tools** — mismo sitemap.
-4. **GA4** — crear propiedad, pegar ID en `NEXT_PUBLIC_GA_MEASUREMENT_ID`, redeploy.
-5. **Contenido** — compartir link en WhatsApp de colegios (señales sociales).
-6. **Rendimiento** — revisar pestaña Speed Insights en Vercel (móvil first).
+- [ ] Dominio `retoicfes.com` (y `www` → apex) en Vercel
+- [ ] [Google Search Console](https://search.google.com/search-console): propiedad verificada
+- [ ] Enviar sitemap: `https://retoicfes.com/sitemap.xml`
+- [ ] [Bing Webmaster](https://www.bing.com/webmasters): mismo sitemap
+- [ ] Inspeccionar URL `/` y pedir indexación
+- [ ] Probar vista previa OG: [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/)
+- [ ] Core Web Vitals en Vercel Speed Insights (móvil)
+- [ ] Enlaces desde colegios / WhatsApp / redes (autoridad real)
 
 ## Posicionamiento realista
 
-El SEO técnico está listo; el **primer lugar** en Google depende de autoridad, backlinks, contenido nuevo y tiempo. Próximos pasos de producto que ayudan:
+El **SEO técnico** del repo está alineado; **el primer puesto en Google** no se garantiza por código. Depende de:
 
-- Blog o `/guia-saber-11` con texto indexable
-- Páginas por materia (`/matematicas-icfes`)
-- Más preguntas en el banco (ver `docs/PREGUNTAS.md`)
+1. **Intención de búsqueda** — “simulacro saber 11”, “preguntas icfes grado 11”, etc.
+2. **Contenido nuevo** — blog o guías (`/guia-saber-11`, páginas por materia)
+3. **Autoridad** — backlinks, menciones, tiempo de dominio
+4. **Señales de producto** — usuarios, tiempo en sitio, shares
 
-## Base de datos
+### Próximos pasos de producto que más ayudan
+
+- Landing `/guia-saber-11` (1500+ palabras, indexable)
+- Páginas por materia: `/matematicas-saber-11`, `/lectura-critica-icfes`, …
+- Más ítems en el banco (ver `docs/FORMATO-PREGUNTAS.md`)
+- Enlace visible desde home al ranking y onboarding (ya en FAQ)
+
+## Comprobación local
 
 ```bash
-pnpm db:clean   # vacía rankings + preguntas
-pnpm db:seed    # carga 40 preguntas grado 11°
-pnpm db:reset   # clean + seed
+pnpm dev
+# Abrir:
+# http://localhost:3000/robots.txt
+# http://localhost:3000/sitemap.xml
+# Ver código fuente de / → debe verse HomeSeoContent y JSON-LD
 ```
+
+```bash
+pnpm build
+```
+
+## Analytics
+
+| Herramienta | Paquete / componente |
+|-------------|----------------------|
+| Vercel Analytics | `@vercel/analytics` |
+| Speed Insights | `@vercel/speed-insights` |
+| GTM | `components/analytics/GoogleTagManager.tsx` |
+| GA4 | `components/analytics/GoogleAnalytics.tsx` |

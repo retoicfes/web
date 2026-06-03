@@ -6,13 +6,13 @@ import { MobileShell } from "@/components/ui/MobileShell";
 import type { ResultadoICFES } from "@/lib/icfes-puntaje";
 import {
   PREGUNTAS_POR_RONDA,
-  SEGUNDOS_ALERTA_TIMER,
+  SEGUNDOS_CUENTA_REGRESIVA,
   SEGUNDOS_POR_PREGUNTA,
   fraseAlFallar,
   type OpcionLetra,
   type PreguntaDTO,
 } from "@/lib/game";
-import { playAlertaTimer } from "@/lib/timer-sound";
+import { playTickCuentaRegresiva, unlockTimerAudio } from "@/lib/timer-sound";
 import { clearRoundComplete, getCompletedRound, getUltimaRondaIds, markRoundComplete, puedeJugarOtraRonda, saveUltimaRondaIds, etiquetaIntentoActual } from "@/lib/round";
 import { getPlayerSession } from "@/lib/session";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -37,8 +37,19 @@ function JugarContent() {
   const [guardando, setGuardando] = useState(false);
   const [segundosRestantes, setSegundosRestantes] = useState(SEGUNDOS_POR_PREGUNTA);
   const respuestasRef = useRef<RespuestaEnvio[]>([]);
+  const ultimoTickRef = useRef<number | null>(null);
   const [aciertos, setAciertos] = useState(0);
   const [respondidas, setRespondidas] = useState(0);
+
+  useEffect(() => {
+    const desbloquear = () => void unlockTimerAudio();
+    window.addEventListener("pointerdown", desbloquear, { passive: true });
+    window.addEventListener("touchstart", desbloquear, { passive: true });
+    return () => {
+      window.removeEventListener("pointerdown", desbloquear);
+      window.removeEventListener("touchstart", desbloquear);
+    };
+  }, []);
 
   useEffect(() => {
     if (!getPlayerSession()) {
@@ -216,12 +227,18 @@ function JugarContent() {
 
     setSegundosRestantes(SEGUNDOS_POR_PREGUNTA);
     let restante = SEGUNDOS_POR_PREGUNTA;
+    ultimoTickRef.current = null;
 
     const id = window.setInterval(() => {
       restante -= 1;
       setSegundosRestantes(restante);
-      if (SEGUNDOS_ALERTA_TIMER.includes(restante as 5 | 3)) {
-        playAlertaTimer(restante as 5 | 3);
+      if (
+        restante >= 1 &&
+        restante <= SEGUNDOS_CUENTA_REGRESIVA &&
+        ultimoTickRef.current !== restante
+      ) {
+        ultimoTickRef.current = restante;
+        void playTickCuentaRegresiva(restante);
       }
       if (restante <= 0) {
         window.clearInterval(id);

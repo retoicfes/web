@@ -3,6 +3,7 @@
 import { MobileShell } from "@/components/ui/MobileShell";
 import { clearRoundComplete } from "@/lib/round";
 import { savePlayerSession, type PlayerSession } from "@/lib/session";
+import { unlockTimerAudio } from "@/lib/timer-sound";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -109,6 +110,7 @@ export default function OnboardingPage() {
     };
     savePlayerSession(session);
     clearRoundComplete();
+    void unlockTimerAudio();
     router.push("/jugar");
   };
 

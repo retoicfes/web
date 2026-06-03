@@ -3,6 +3,7 @@
 import { QuestionTimer } from "@/components/game/QuestionTimer";
 import type { OpcionLetra, PreguntaDTO } from "@/lib/game";
 import { opcionTexto } from "@/lib/game";
+import { unlockTimerAudio } from "@/lib/timer-sound";
 import { useRef, useState } from "react";
 
 const UMBRAL_DESLIZ = 72;
@@ -43,6 +44,7 @@ export function QuestionCard({
   const [dragging, setDragging] = useState(false);
 
   const onTouchStart = (e: React.TouchEvent) => {
+    void unlockTimerAudio();
     if (disabled) return;
     startRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     setDragging(true);
@@ -128,7 +130,10 @@ export function QuestionCard({
             key={letra}
             type="button"
             disabled={disabled}
-            onClick={() => onAnswer(letra)}
+            onClick={() => {
+              void unlockTimerAudio();
+              onAnswer(letra);
+            }}
             className="rounded-2xl border border-slate-600 bg-slate-800/80 px-3 py-4 text-left text-sm font-medium transition active:scale-95 disabled:opacity-50"
           >
             <span className="mr-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">

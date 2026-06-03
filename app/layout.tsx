@@ -24,9 +24,6 @@ export const metadata: Metadata = {
   publisher: siteConfig.creator,
   category: "education",
   manifest: "/manifest.json",
-  alternates: {
-    canonical: "/",
-  },
   robots: {
     index: true,
     follow: true,
@@ -44,7 +41,22 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     title: `${siteConfig.name} | Practica Saber 11 gratis`,
     description: siteConfig.description,
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: `${siteConfig.name} — Simulacro Saber 11`,
+      },
+    ],
   },
+  ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? {
+        verification: {
+          google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+        },
+      }
+    : {}),
   twitter: {
     card: "summary_large_image",
     title: siteConfig.name,

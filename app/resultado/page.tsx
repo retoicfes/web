@@ -49,7 +49,7 @@ function ResultadoContent() {
   const puedeReintentar = puedeJugarOtraRonda();
 
   return (
-    <MobileShell title="¡Ronda terminada!" subtitle={session?.colegio}>
+    <MobileShell title="¡Ronda terminada!" subtitle={session?.colegio} backHref="/">
       {sinIntentos || !puedeReintentar ? (
         <p className="mb-4 rounded-xl border border-slate-600 bg-slate-800/80 px-4 py-3 text-sm text-slate-300">
           Usaste tus {MAX_INTENTOS_RONDA} intentos de esta temporada. Revisa el ranking o espera
