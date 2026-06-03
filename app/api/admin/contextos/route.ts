@@ -46,7 +46,8 @@ export async function POST(req: NextRequest) {
 
         const preguntas = await Promise.all(
           bloque.preguntasItems.map((p, idx) => {
-            const orden = p.orden ?? idx + 1;
+            /** Siempre 1, 2, 3… dentro del bloque (el campo orden del JSON se ignora). */
+            const orden = idx + 1;
             return tx.preguntaICFES.create({
               data: {
                 materia,

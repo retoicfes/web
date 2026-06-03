@@ -200,24 +200,6 @@ export function AdminBancoPreguntas({ adminKey, headers, inputClass, onMensaje, 
             </select>
           </label>
 
-          {editando.contextoId ? (
-            <label className="block">
-              <span className="text-xs text-slate-500">Nº en contexto</span>
-              <input
-                type="number"
-                min={1}
-                value={editando.ordenEnContexto ?? ""}
-                onChange={(e) =>
-                  actualizarCampo(
-                    "ordenEnContexto",
-                    e.target.value ? Number(e.target.value) : null,
-                  )
-                }
-                className={inputClass}
-              />
-            </label>
-          ) : null}
-
           <textarea
             placeholder="Enunciado"
             value={editando.enunciado}
@@ -320,7 +302,6 @@ export function AdminBancoPreguntas({ adminKey, headers, inputClass, onMensaje, 
               <p className="text-xs text-indigo-300/90">
                 {p.materia}
                 {p.contexto ? ` · ${p.contexto}` : ""}
-                {p.orden ? ` · ítem ${p.orden}` : ""}
               </p>
               <p className="mt-0.5 line-clamp-2 text-sm text-slate-200">{p.enunciado}</p>
               <p className="mt-1 text-xs text-slate-500">

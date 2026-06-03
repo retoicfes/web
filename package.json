@@ -16,6 +16,7 @@
     "db:reset-banco": "tsx prisma/reset-banco.ts",
     "db:reset-banco-full": "tsx prisma/reset-banco.ts --rankings",
     "db:dedupe-rankings": "tsx prisma/dedupe-rankings.ts",
+    "db:renumerar-contextos": "tsx prisma/renumerar-contextos.ts",
     "db:import-colegios": "tsx prisma/import-colegios.ts"
   },
   "dependencies": {

@@ -106,7 +106,7 @@ export default function AdminPreguntasPage() {
       materia,
       titulo: tituloContexto || undefined,
       contenido: contenidoContexto,
-      preguntasItems: preguntasBloque.map((p, i) => ({ ...p, orden: p.orden ?? i + 1 })),
+      preguntasItems: preguntasBloque.map((p, i) => ({ ...p, orden: i + 1 })),
     };
     const res = await fetch("/api/admin/contextos", {
       method: "POST",
@@ -162,6 +162,26 @@ export default function AdminPreguntasPage() {
     preguntas: "BORRAR-PREGUNTAS",
     rankings: "BORRAR-RANKINGS",
     todo: "BORRAR-TODO",
+  };
+
+  const renumerarContextos = async () => {
+    setMensaje(null);
+    const res = await fetch("/api/admin/contextos/renumerar", {
+      method: "POST",
+      headers: headers(adminKey),
+    });
+    const d = (await res.json()) as {
+      error?: string;
+      preguntasActualizadas?: number;
+      contextos?: number;
+    };
+    if (!res.ok) {
+      setMensaje(d.error ?? "Error al renumerar");
+      return;
+    }
+    setMensaje(
+      `Ítems renumerados: ${d.preguntasActualizadas ?? 0} preguntas en ${d.contextos ?? 0} contextos ✓`,
+    );
   };
 
   const ejecutarReset = async () => {
@@ -456,6 +476,19 @@ export default function AdminPreguntasPage() {
           >
             Ejecutar reset
           </button>
+
+          <div className="border-t border-slate-700 pt-4">
+            <p className="mb-2 text-xs text-slate-400">
+              Alinea el orden interno de las preguntas de cada contexto (1, 2, 3…).
+            </p>
+            <button
+              type="button"
+              onClick={() => void renumerarContextos()}
+              className="w-full rounded-xl border border-indigo-500/50 bg-indigo-500/10 py-3 text-sm font-bold text-indigo-300"
+            >
+              Renumerar ítems por contexto
+            </button>
+          </div>
 
           <p className="text-xs text-slate-600">
             Los intentos por dispositivo (localStorage) no se borran desde aquí; el estudiante puede

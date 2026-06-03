@@ -96,9 +96,6 @@ export function QuestionCard({
               {pregunta.contexto.titulo ? (
                 <p className="mb-1 text-xs font-semibold text-indigo-300">
                   {pregunta.contexto.titulo}
-                  {pregunta.ordenEnContexto
-                    ? ` · Pregunta ${pregunta.ordenEnContexto}`
-                    : ""}
                 </p>
               ) : null}
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-300">
