@@ -3,6 +3,11 @@ import { createHash } from "node:crypto";
 export const PREGUNTAS_POR_RONDA = 10;
 /** Ítems por área Saber 11 en cada ronda (5 áreas × 2 = 10). */
 export const PREGUNTAS_POR_AREA_RONDA = 2;
+/**
+ * Rondas completas permitidas por dispositivo (localStorage).
+ * Recomendado: 2 (1 intento + 1 repaso). Cambiar a 3 si quieres más práctica.
+ */
+export const MAX_INTENTOS_RONDA = 2;
 export const PUNTOS_POR_ACIERTO = 10;
 /** Tiempo máximo por pregunta antes de contar como fallo. */
 export const SEGUNDOS_POR_PREGUNTA = 20;

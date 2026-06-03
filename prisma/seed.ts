@@ -7,6 +7,7 @@ const prisma = new PrismaClient();
 async function main() {
   await prisma.ranking.deleteMany();
   await prisma.preguntaICFES.deleteMany();
+  await prisma.contextoICFES.deleteMany();
   await prisma.preguntaICFES.createMany({ data: PREGUNTAS_SABER_11 });
 
   const porMateria = PREGUNTAS_SABER_11.reduce(

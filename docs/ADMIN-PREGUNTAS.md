@@ -59,16 +59,52 @@ La UI guarda la clave en `sessionStorage` y la envía como header `x-admin-key`.
 }
 ```
 
+### 3. Ver y editar
+
+Pestaña **Ver / editar**: lista el banco, filtra por área o busca en el enunciado, y abre cada ítem para corregir texto, opciones, correcta, dificultad y orden (si tiene contexto).
+
+API: `GET /api/admin/preguntas/[id]` · `PATCH /api/admin/preguntas/[id]`
+
+## Reset (banco y estudiantes)
+
+Pestaña **Reset** en `/admin/preguntas` o por terminal:
+
+| Acción | Admin (confirmación) | Terminal |
+|--------|----------------------|----------|
+| Vaciar banco ICFES | `BORRAR-PREGUNTAS` | `pnpm db:reset-banco` |
+| Vaciar rankings | `BORRAR-RANKINGS` | `pnpm db:reset-banco-full` (solo rankings: ver script) |
+| Ambos | `BORRAR-TODO` | `pnpm db:reset-banco --rankings` |
+
+Flujo típico para **nuevo banco ICFES**:
+
+1. Reset → borrar preguntas (+ contextos)
+2. Importar JSON o formulario por área
+3. (Opcional) Reset rankings si empiezas competencia nueva
+
+**Estudiantes:** en el servidor solo existen como filas en `rankings` (apodo + colegio + puntaje). No hay cuentas. Borrar rankings = empezar de cero en el ranking.
+
+**Intentos en el celular:** el límite de rondas (2 por defecto) vive en `localStorage` del dispositivo. Tras reset de rankings, pide a los estudiantes cerrar pestaña o borrar datos del sitio si quieres reiniciar intentos también.
+
+## Intentos por estudiante (app)
+
+Constante `MAX_INTENTOS_RONDA` en `lib/game.ts` (default **2**). Cambiar a `3` si quieres más repaso.
+
+- Intento 1: primera ronda
+- Intento 2: botón «Intentar de nuevo» (preguntas distintas)
+- Tras el máximo: solo ranking, sin nueva ronda
+
 ## APIs (referencia)
 
 | Método | Ruta | Uso |
 |--------|------|-----|
+| GET | `/api/admin/preguntas` | Listar (filtro `materia`, `q`, `limit`) |
+| GET | `/api/admin/preguntas/[id]` | Detalle para editar |
+| PATCH | `/api/admin/preguntas/[id]` | Guardar cambios |
 | POST | `/api/admin/contextos` | Contexto + preguntas |
 | GET | `/api/admin/contextos` | Listar contextos |
 | POST | `/api/admin/preguntas` | Pregunta suelta sin contexto |
 | GET | `/api/admin/stats` | Totales por materia |
-
-Todas requieren header `x-admin-key` en producción.
+| POST | `/api/admin/reset` | Borrar banco y/o rankings |
 
 ## Dificultad (metadata interna)
 

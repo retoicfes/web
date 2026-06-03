@@ -13,6 +13,9 @@
     "db:clean": "tsx prisma/clean.ts",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "tsx prisma/clean.ts && tsx prisma/seed.ts",
+    "db:reset-banco": "tsx prisma/reset-banco.ts",
+    "db:reset-banco-full": "tsx prisma/reset-banco.ts --rankings",
+    "db:dedupe-rankings": "tsx prisma/dedupe-rankings.ts",
     "db:import-colegios": "tsx prisma/import-colegios.ts"
   },
   "dependencies": {

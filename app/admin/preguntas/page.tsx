@@ -12,6 +12,7 @@ import {
 } from "@/lib/admin/preguntas";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { AdminBancoPreguntas } from "@/components/admin/AdminBancoPreguntas";
 
 const ADMIN_KEY_STORAGE = "retoicfes_admin_key";
 
@@ -54,7 +55,7 @@ function headers(key: string) {
 export default function AdminPreguntasPage() {
   const [adminKey, setAdminKey] = useState("");
   const [keyInput, setKeyInput] = useState("");
-  const [tab, setTab] = useState<"contexto" | "suelta" | "json">("contexto");
+  const [tab, setTab] = useState<"contexto" | "json" | "banco" | "mantenimiento">("contexto");
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [stats, setStats] = useState<{
     totalPreguntas: number;
@@ -69,6 +70,8 @@ export default function AdminPreguntasPage() {
   ]);
 
   const [jsonTexto, setJsonTexto] = useState(JSON.stringify(EJEMPLO_JSON, null, 2));
+  const [resetConfirm, setResetConfirm] = useState("");
+  const [resetTarget, setResetTarget] = useState<"preguntas" | "rankings" | "todo">("preguntas");
 
   useEffect(() => {
     const saved = sessionStorage.getItem(ADMIN_KEY_STORAGE);
@@ -142,6 +145,29 @@ export default function AdminPreguntasPage() {
     }
   };
 
+  const CONFIRM_RESET: Record<typeof resetTarget, string> = {
+    preguntas: "BORRAR-PREGUNTAS",
+    rankings: "BORRAR-RANKINGS",
+    todo: "BORRAR-TODO",
+  };
+
+  const ejecutarReset = async () => {
+    setMensaje(null);
+    const res = await fetch("/api/admin/reset", {
+      method: "POST",
+      headers: headers(adminKey),
+      body: JSON.stringify({ target: resetTarget, confirm: resetConfirm.trim() }),
+    });
+    const d = (await res.json()) as { error?: string; mensaje?: string; eliminados?: object };
+    if (!res.ok) {
+      setMensaje(d.error ?? "Error al resetear");
+      return;
+    }
+    setMensaje(d.mensaje ?? "Reset completado");
+    setResetConfirm("");
+    void cargarStats();
+  };
+
   const inputClass =
     "w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-500";
 
@@ -195,8 +221,10 @@ export default function AdminPreguntasPage() {
       <div className="mb-4 flex gap-2 text-sm">
         {(
           [
-            ["contexto", "Contexto + ítems"],
-            ["json", "Importar JSON"],
+            ["contexto", "Nueva"],
+            ["banco", "Ver / editar"],
+            ["json", "JSON"],
+            ["mantenimiento", "Reset"],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -350,7 +378,15 @@ export default function AdminPreguntasPage() {
             Guardar contexto y preguntas
           </button>
         </div>
-      ) : (
+      ) : tab === "banco" ? (
+        <AdminBancoPreguntas
+          adminKey={adminKey}
+          headers={headers}
+          inputClass={inputClass}
+          onMensaje={setMensaje}
+          onActualizado={() => void cargarStats()}
+        />
+      ) : tab === "json" ? (
         <div className="space-y-3">
           <p className="text-xs text-slate-500">
             Pega JSON con <code className="text-slate-400">materia</code>,{" "}
@@ -375,7 +411,52 @@ export default function AdminPreguntasPage() {
             Importar JSON
           </button>
         </div>
-      )}
+      ) : tab === "mantenimiento" ? (
+        <div className="space-y-4">
+          <div className="rounded-xl border border-red-500/40 bg-red-950/30 p-3 text-xs text-red-200/90">
+            <strong className="text-red-300">Irreversible.</strong> Usa esto antes de subir un banco
+            ICFES nuevo o para reiniciar la competencia del colegio.
+          </div>
+
+          <label className="block">
+            <span className="text-xs text-slate-500">Qué borrar</span>
+            <select
+              value={resetTarget}
+              onChange={(e) => setResetTarget(e.target.value as typeof resetTarget)}
+              className={inputClass}
+            >
+              <option value="preguntas">Solo banco de preguntas (+ contextos)</option>
+              <option value="rankings">Solo rankings (estudiantes en servidor)</option>
+              <option value="todo">Banco + rankings</option>
+            </select>
+          </label>
+
+          <p className="text-xs text-slate-500">
+            Escribe exactamente:{" "}
+            <code className="text-amber-300">{CONFIRM_RESET[resetTarget]}</code>
+          </p>
+          <input
+            value={resetConfirm}
+            onChange={(e) => setResetConfirm(e.target.value)}
+            placeholder="Texto de confirmación"
+            className={inputClass}
+          />
+
+          <button
+            type="button"
+            onClick={() => void ejecutarReset()}
+            disabled={resetConfirm.trim() !== CONFIRM_RESET[resetTarget]}
+            className="w-full rounded-xl bg-red-600 py-3 font-bold text-white disabled:opacity-40"
+          >
+            Ejecutar reset
+          </button>
+
+          <p className="text-xs text-slate-600">
+            Los intentos por dispositivo (localStorage) no se borran desde aquí; el estudiante puede
+            limpiar datos del sitio o usar otro navegador.
+          </p>
+        </div>
+      ) : null}
     </main>
   );
 }

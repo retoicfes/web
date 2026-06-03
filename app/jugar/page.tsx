@@ -13,7 +13,7 @@ import {
   type PreguntaDTO,
 } from "@/lib/game";
 import { playAlertaTimer } from "@/lib/timer-sound";
-import { clearRoundComplete, getCompletedRound, getUltimaRondaIds, markRoundComplete, saveUltimaRondaIds } from "@/lib/round";
+import { clearRoundComplete, getCompletedRound, getUltimaRondaIds, markRoundComplete, puedeJugarOtraRonda, saveUltimaRondaIds, etiquetaIntentoActual } from "@/lib/round";
 import { getPlayerSession } from "@/lib/session";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
@@ -46,6 +46,10 @@ function JugarContent() {
       return;
     }
     if (nuevaRonda) {
+      if (!puedeJugarOtraRonda()) {
+        router.replace("/resultado?sinIntentos=1");
+        return;
+      }
       clearRoundComplete();
       respuestasRef.current = [];
       setAciertos(0);
@@ -102,11 +106,17 @@ function JugarContent() {
           );
           return;
         }
+        const saved = (await res.json()) as {
+          superoAnterior?: boolean;
+          puntajeGuardado?: number;
+        };
+        const q = new URLSearchParams({ puntaje: String(global), saved: "1" });
+        if (saved.superoAnterior === false) q.set("sinMejora", "1");
+        router.replace(`/resultado?${q}`);
       } catch {
         router.replace(`/resultado?puntaje=${global}&saveError=red`);
         return;
       }
-      router.replace(`/resultado?puntaje=${global}&saved=1`);
     },
     [router],
   );
@@ -238,7 +248,7 @@ function JugarContent() {
   return (
     <MobileShell
       title={getPlayerSession()?.apodo ?? "Reto"}
-      subtitle={`${aciertos}/${respondidas} aciertos · escala ICFES 0–500`}
+      subtitle={`${etiquetaIntentoActual()} · ${aciertos}/${respondidas} aciertos`}
     >
       <QuestionCard
         pregunta={actual}

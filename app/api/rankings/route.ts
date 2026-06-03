@@ -1,5 +1,11 @@
 import { hasDatabaseConfig } from "@/lib/ensure-db-env";
 import { PUNTAJE_GLOBAL_MAXIMO, PUNTAJE_GLOBAL_MINIMO } from "@/lib/icfes-puntaje-limits";
+import {
+  guardarMejorPuntaje,
+  mejoresPorEstudiante,
+  topColegiosPorMejorEstudiante,
+} from "@/lib/ranking-best";
+import { limiteRanking } from "@/lib/ranking-config";
 import { rateLimit, sanitizeApodo, sanitizeTexto } from "@/lib/security/rate-limit";
 import { verificarTokenRanking, signingConfigured } from "@/lib/security/round-token";
 import { prisma } from "@/lib/prisma";
@@ -66,22 +72,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Colegio no válido" }, { status: 400 });
     }
 
-    const row = await prisma.ranking.create({
-      data: {
-        apodo: sanitizeApodo(apodo),
-        departamento: sanitizeTexto(departamento, 120),
-        municipio: sanitizeTexto(municipio, 120),
-        colegio: sanitizeTexto(colegio, 500),
-        daneDepartamento: daneDepartamento ? sanitizeTexto(daneDepartamento, 10) : null,
-        daneMunicipio: daneMunicipio ? sanitizeTexto(daneMunicipio, 10) : null,
-        codigoEstablecimiento: codigoEstablecimiento
-          ? sanitizeTexto(codigoEstablecimiento, 20)
-          : null,
-        puntaje: puntajeRedondeado,
-      },
+    const resultado = await guardarMejorPuntaje(prisma, {
+      apodo: sanitizeApodo(apodo),
+      departamento: sanitizeTexto(departamento, 120),
+      municipio: sanitizeTexto(municipio, 120),
+      colegio: sanitizeTexto(colegio, 500),
+      daneDepartamento: daneDepartamento ? sanitizeTexto(daneDepartamento, 10) : null,
+      daneMunicipio: daneMunicipio ? sanitizeTexto(daneMunicipio, 10) : null,
+      codigoEstablecimiento: codigoEstablecimiento
+        ? sanitizeTexto(codigoEstablecimiento, 20)
+        : null,
+      puntaje: puntajeRedondeado,
     });
 
-    return NextResponse.json({ ok: true, id: row.id });
+    return NextResponse.json({
+      ok: true,
+      id: resultado.id,
+      puntajeGuardado: resultado.puntaje,
+      /** false si el intento no superó el récord previo */
+      superoAnterior: resultado.actualizado,
+    });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Error desconocido";
     console.error("[POST /api/rankings]", message);
@@ -111,41 +121,40 @@ export async function GET(req: NextRequest) {
   const departamento = req.nextUrl.searchParams.get("departamento");
   const municipio = req.nextUrl.searchParams.get("municipio");
   const colegio = req.nextUrl.searchParams.get("colegio");
+  const limit = limiteRanking(scope);
 
   try {
     if (scope === "nacional") {
-      const grupos = await prisma.ranking.groupBy({
-        by: ["departamento", "municipio", "colegio"],
-        _avg: { puntaje: true },
-        _count: { _all: true },
-        orderBy: { _avg: { puntaje: "desc" } },
-        take: 50,
-      });
+      const { filas, total } = await topColegiosPorMejorEstudiante(prisma, limit);
 
       return NextResponse.json({
-        ranking: grupos.map((g) => ({
+        scope,
+        limit,
+        total,
+        deduplicado: true,
+        ranking: filas.map((g) => ({
           apodo: g.colegio,
           colegio: g.colegio,
           municipio: g.municipio,
           departamento: g.departamento,
-          puntaje: Math.round(g._avg.puntaje ?? 0),
-          jugadores: g._count._all,
+          puntaje: g.puntaje,
+          jugadores: g.jugadores,
         })),
       });
     }
 
     if (!departamento) {
-      return NextResponse.json({ ranking: [] });
+      return NextResponse.json({ ranking: [], limit, total: 0, scope, deduplicado: true });
     }
 
     if (scope === "departamento") {
-      const rows = await prisma.ranking.findMany({
-        where: { departamento },
-        orderBy: { puntaje: "desc" },
-        take: 50,
-      });
+      const { filas, total } = await mejoresPorEstudiante(prisma, { departamento }, limit);
       return NextResponse.json({
-        ranking: rows.map((r) => ({
+        scope,
+        limit,
+        total,
+        deduplicado: true,
+        ranking: filas.map((r) => ({
           apodo: r.apodo,
           puntaje: r.puntaje,
           departamento: r.departamento,
@@ -156,13 +165,17 @@ export async function GET(req: NextRequest) {
     }
 
     if (scope === "municipio" && municipio) {
-      const rows = await prisma.ranking.findMany({
-        where: { departamento, municipio },
-        orderBy: { puntaje: "desc" },
-        take: 50,
-      });
+      const { filas, total } = await mejoresPorEstudiante(
+        prisma,
+        { departamento, municipio },
+        limit,
+      );
       return NextResponse.json({
-        ranking: rows.map((r) => ({
+        scope,
+        limit,
+        total,
+        deduplicado: true,
+        ranking: filas.map((r) => ({
           apodo: r.apodo,
           puntaje: r.puntaje,
           municipio: r.municipio,
@@ -172,19 +185,23 @@ export async function GET(req: NextRequest) {
     }
 
     if (scope === "colegio" && municipio && colegio) {
-      const rows = await prisma.ranking.findMany({
-        where: { departamento, municipio, colegio },
-        orderBy: { puntaje: "desc" },
-        take: 30,
-      });
+      const { filas, total } = await mejoresPorEstudiante(
+        prisma,
+        { departamento, municipio, colegio },
+        limit,
+      );
 
       const promedio =
-        rows.length > 0
-          ? Math.round(rows.reduce((s, r) => s + r.puntaje, 0) / rows.length)
+        filas.length > 0
+          ? Math.round(filas.reduce((s, r) => s + r.puntaje, 0) / filas.length)
           : 0;
 
       return NextResponse.json({
-        ranking: rows.map((r) => ({
+        scope,
+        limit,
+        total,
+        deduplicado: true,
+        ranking: filas.map((r) => ({
           apodo: r.apodo,
           puntaje: r.puntaje,
         })),
@@ -192,7 +209,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    return NextResponse.json({ ranking: [] });
+    return NextResponse.json({ ranking: [], limit, total: 0, scope, deduplicado: true });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Error desconocido";
     console.error("[GET /api/rankings]", message);

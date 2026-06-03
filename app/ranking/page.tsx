@@ -3,15 +3,16 @@
 import { RankingUbicacionPicker, type UbicacionRanking } from "@/components/ranking/RankingUbicacionPicker";
 import { ShareRetoButtons } from "@/components/share/ShareRetoButtons";
 import { MobileShell } from "@/components/ui/MobileShell";
+import { DESCRIPCION_RANKING, type RankingScope } from "@/lib/ranking-config";
 import { usePlayerSession } from "@/lib/use-player-session";
-import { getCompletedRound } from "@/lib/round";
+import { getCompletedRound, puedeJugarOtraRonda } from "@/lib/round";
 import { getPlayerSession } from "@/lib/session";
 import { useRoundComplete } from "@/lib/use-round-complete";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 
-type Scope = "colegio" | "municipio" | "departamento" | "nacional";
+type Scope = RankingScope;
 type Fila = {
   apodo: string;
   puntaje: number;
@@ -85,6 +86,7 @@ function RankingContent() {
   const [scope, setScope] = useState<Scope>(() => scopeInicial(scopeUrl));
   const [explorando, setExplorando] = useState<UbicacionRanking | null>(null);
   const [filas, setFilas] = useState<Fila[]>([]);
+  const [metaRanking, setMetaRanking] = useState<{ limit: number; total: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -110,6 +112,7 @@ function RankingContent() {
   const cargarRanking = useCallback(async () => {
     if (scope !== "nacional" && !ubicacion) {
       setFilas([]);
+      setMetaRanking(null);
       setLoading(false);
       return;
     }
@@ -127,11 +130,20 @@ function RankingContent() {
     try {
       const res = await fetch(`/api/rankings?${q}`);
       if (!res.ok) throw new Error("No se pudo cargar el ranking");
-      const d = (await res.json()) as { ranking: Fila[] };
+      const d = (await res.json()) as {
+        ranking: Fila[];
+        limit?: number;
+        total?: number;
+      };
       setFilas(d.ranking ?? []);
+      setMetaRanking({
+        limit: d.limit ?? 50,
+        total: d.total ?? d.ranking?.length ?? 0,
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error de red");
       setFilas([]);
+      setMetaRanking(null);
     } finally {
       setLoading(false);
     }
@@ -205,9 +217,16 @@ function RankingContent() {
             </div>
           ) : null}
 
-          {scope === "nacional" ? (
-            <p className="mb-3 text-xs text-slate-500">
-              Promedio de puntaje global (0–500) por colegio en Colombia.
+          <p className="mb-3 text-xs text-slate-500">{DESCRIPCION_RANKING[scope]}</p>
+
+          {!loading && !error && filas.length > 0 && metaRanking ? (
+            <p className="mb-2 text-center text-xs text-slate-600">
+              Mostrando top {Math.min(filas.length, metaRanking.limit)}
+              {metaRanking.total > metaRanking.limit
+                ? scope === "nacional"
+                  ? ` de ${metaRanking.total} colegios`
+                  : ` de ${metaRanking.total} participantes`
+                : ""}
             </p>
           ) : null}
 
@@ -260,12 +279,14 @@ function RankingContent() {
 
       {rondaCompleta ? (
         <div className="mt-6 space-y-3">
-          <Link
-            href="/jugar?nueva=1"
-            className="block w-full rounded-2xl border border-indigo-500/40 bg-indigo-500/10 py-3.5 text-center text-sm font-bold text-indigo-300"
-          >
-            Jugar otra ronda
-          </Link>
+          {puedeJugarOtraRonda() ? (
+            <Link
+              href="/jugar?nueva=1"
+              className="block w-full rounded-2xl border border-indigo-500/40 bg-indigo-500/10 py-3.5 text-center text-sm font-bold text-indigo-300"
+            >
+              Intentar de nuevo
+            </Link>
+          ) : null}
           <ShareRetoButtons
             puntaje={getCompletedRound()?.puntaje}
             apodo={session?.apodo}

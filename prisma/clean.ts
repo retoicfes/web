@@ -6,7 +6,10 @@ const prisma = new PrismaClient();
 async function main() {
   const rankings = await prisma.ranking.deleteMany();
   const preguntas = await prisma.preguntaICFES.deleteMany();
-  console.log(`Limpieza: ${rankings.count} rankings y ${preguntas.count} preguntas eliminados.`);
+  const contextos = await prisma.contextoICFES.deleteMany();
+  console.log(
+    `Limpieza: ${rankings.count} rankings, ${preguntas.count} preguntas, ${contextos.count} contextos.`,
+  );
 }
 
 main()

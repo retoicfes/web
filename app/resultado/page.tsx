@@ -3,7 +3,12 @@
 import { IcfesReporte } from "@/components/resultado/IcfesReporte";
 import { ShareRetoButtons } from "@/components/share/ShareRetoButtons";
 import { MobileShell } from "@/components/ui/MobileShell";
-import { getResultadoICFES } from "@/lib/round";
+import { MAX_INTENTOS_RONDA } from "@/lib/game";
+import {
+  getResultadoICFES,
+  intentosRestantes,
+  puedeJugarOtraRonda,
+} from "@/lib/round";
 import { getPlayerSession } from "@/lib/session";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -36,12 +41,26 @@ function ResultadoContent() {
   const puntajeUrl = Number(params.get("puntaje") ?? 0);
   const saveError = params.get("saveError");
   const saved = params.get("saved") === "1";
+  const sinMejora = params.get("sinMejora") === "1";
+  const sinIntentos = params.get("sinIntentos") === "1";
   const session = getPlayerSession();
   const resultado = useMemo(() => getResultadoICFES(), []);
   const puntajeGlobal = resultado?.puntajeGlobal ?? puntajeUrl;
+  const puedeReintentar = puedeJugarOtraRonda();
 
   return (
     <MobileShell title="¡Ronda terminada!" subtitle={session?.colegio}>
+      {sinIntentos || !puedeReintentar ? (
+        <p className="mb-4 rounded-xl border border-slate-600 bg-slate-800/80 px-4 py-3 text-sm text-slate-300">
+          Usaste tus {MAX_INTENTOS_RONDA} intentos de esta temporada. Revisa el ranking o espera
+          a que el profe reinicie la competencia.
+        </p>
+      ) : intentosRestantes() > 0 ? (
+        <p className="mb-4 text-center text-sm text-indigo-300/90">
+          Te queda {intentosRestantes()} intento{intentosRestantes() === 1 ? "" : "s"} más para
+          mejorar tu puntaje.
+        </p>
+      ) : null}
       {saveError ? (
         <p className="mb-4 rounded-xl border border-amber-500/50 bg-amber-950/50 px-4 py-3 text-sm text-amber-200">
           No se guardó en el ranking:{" "}
@@ -52,7 +71,9 @@ function ResultadoContent() {
         </p>
       ) : saved ? (
         <p className="mb-4 text-center text-sm text-green-400">
-          Puntaje global guardado en el ranking ✓
+          {sinMejora
+            ? "Tu récord en el ranking se mantiene (este intento no lo superó) ✓"
+            : "Mejor puntaje guardado en el ranking ✓"}
         </p>
       ) : null}
 
@@ -80,12 +101,15 @@ function ResultadoContent() {
       />
 
       <div className="flex flex-col gap-3 pt-2">
-        <Link
-          href="/jugar?nueva=1"
-          className="flex items-center justify-center gap-2 rounded-2xl border border-indigo-500/50 bg-indigo-500/10 px-10 py-4 text-lg font-bold text-indigo-300 active:scale-[0.98]"
-        >
-          Jugar otra ronda
-        </Link>
+        {puedeReintentar ? (
+          <Link
+            href="/jugar?nueva=1"
+            className="flex items-center justify-center gap-2 rounded-2xl border border-indigo-500/50 bg-indigo-500/10 px-10 py-4 text-lg font-bold text-indigo-300 active:scale-[0.98]"
+          >
+            Intentar de nuevo ({intentosRestantes()} restante
+            {intentosRestantes() === 1 ? "" : "s"})
+          </Link>
+        ) : null}
         <Link
           href={session ? "/ranking?scope=colegio" : "/ranking"}
           className="flex items-center justify-center gap-2 rounded-2xl bg-indigo-500 px-10 py-4 text-lg font-bold text-white shadow-lg shadow-indigo-500/25 active:scale-[0.98]"

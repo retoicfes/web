@@ -56,14 +56,23 @@ export async function GET(req: NextRequest) {
   if (!isAdminAuthorized(req)) return adminUnauthorizedResponse();
 
   const materia = req.nextUrl.searchParams.get("materia");
+  const q = req.nextUrl.searchParams.get("q")?.trim();
+  const take = Math.min(Number(req.nextUrl.searchParams.get("limit") ?? 50), 100);
 
   try {
-    const where = materia ? { materia } : undefined;
+    const where = {
+      ...(materia ? { materia } : {}),
+      ...(q
+        ? {
+            enunciado: { contains: q, mode: "insensitive" as const },
+          }
+        : {}),
+    };
     const [preguntas, total] = await Promise.all([
       prisma.preguntaICFES.findMany({
         where,
         orderBy: { id: "desc" },
-        take: 30,
+        take,
         select: {
           id: true,
           materia: true,
