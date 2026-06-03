@@ -10,7 +10,7 @@ export const PREGUNTAS_POR_AREA_RONDA = 2;
 export const MAX_INTENTOS_RONDA = 2;
 export const PUNTOS_POR_ACIERTO = 10;
 /** Tiempo máximo por pregunta antes de contar como fallo. */
-export const SEGUNDOS_POR_PREGUNTA = 20;
+export const SEGUNDOS_POR_PREGUNTA = 60;
 /** Segundos en los que suena alerta sonora. */
 export const SEGUNDOS_ALERTA_TIMER = [5, 3] as const;
 

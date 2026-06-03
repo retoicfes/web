@@ -1,6 +1,6 @@
 # Formato de preguntas — Reto ICFES
 
-Guía para redactar ítems que funcionen bien en **móvil** (swipe + 20 s por pregunta).
+Guía para redactar ítems que funcionen bien en **móvil** (swipe + 60 s por pregunta).
 
 ## ¿Contexto + preguntas o todo corto?
 
@@ -43,7 +43,7 @@ Un contexto puede tener **varias preguntas** (ítems 1, 2, 3…) vía `ordenEnCo
 
 - Contexto de 800 palabras **y** enunciado que repite todo el contexto.
 - Opciones A–D con párrafos enteros (no se leen en el celular).
-- Preguntas que requieren cálculo largo sin tiempo suficiente (20 s).
+- Preguntas que requieren cálculo largo sin tiempo suficiente (60 s).
 
 ## Contenido legal
 
