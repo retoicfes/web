@@ -6,6 +6,7 @@ import {
   DIFICULTAD_DEFAULT,
   ETIQUETA_DIFICULTAD,
   LIMITES_CONTENIDO,
+  parsearImportacionContextos,
   type ContextoImportInput,
   type DificultadPregunta,
   type PreguntaImportInput,
@@ -127,21 +128,33 @@ export default function AdminPreguntasPage() {
   const enviarJson = async () => {
     setMensaje(null);
     try {
-      const payload = JSON.parse(jsonTexto) as ContextoImportInput;
+      const parsed: unknown = JSON.parse(jsonTexto);
+      const bloques = parsearImportacionContextos(parsed);
       const res = await fetch("/api/admin/contextos", {
         method: "POST",
         headers: headers(adminKey),
-        body: JSON.stringify(payload),
+        body: JSON.stringify(bloques.length === 1 ? bloques[0] : bloques),
       });
-      const d = (await res.json()) as { error?: string };
+      const d = (await res.json()) as {
+        error?: string;
+        detail?: string;
+        importados?: number;
+        totalPreguntas?: number;
+      };
       if (!res.ok) {
-        setMensaje(d.error ?? "Error");
+        setMensaje(d.detail ? `${d.error}: ${d.detail}` : (d.error ?? "Error"));
         return;
       }
-      setMensaje("JSON importado correctamente");
+      const n = d.importados ?? bloques.length;
+      const p = d.totalPreguntas ?? 0;
+      setMensaje(
+        n > 1
+          ? `Importados ${n} contextos (${p} preguntas) ✓`
+          : `JSON importado (${p || bloques[0].preguntasItems.length} preguntas) ✓`,
+      );
       void cargarStats();
-    } catch {
-      setMensaje("JSON inválido");
+    } catch (e) {
+      setMensaje(e instanceof Error ? e.message : "JSON inválido");
     }
   };
 
@@ -174,17 +187,15 @@ export default function AdminPreguntasPage() {
   if (!adminKey) {
     return (
       <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-4 p-6">
-        <h1 className="text-xl font-bold">Admin · Preguntas</h1>
-        <p className="text-sm text-slate-400">
-          Solo local o con <code className="text-indigo-300">ADMIN_SECRET</code> en{" "}
-          <code className="text-slate-500">.env.local</code>.
-        </p>
+        <h1 className="text-xl font-bold">Banco de preguntas</h1>
+        <p className="text-sm text-slate-400">Ingresa la clave de administración.</p>
         <input
           type="password"
           value={keyInput}
           onChange={(e) => setKeyInput(e.target.value)}
-          placeholder="Clave admin (vacío en local dev)"
+          placeholder="Clave de acceso"
           className={inputClass}
+          autoComplete="current-password"
         />
         <button
           type="button"
@@ -209,8 +220,7 @@ export default function AdminPreguntasPage() {
             {stats ? `${stats.totalPreguntas} preguntas en DB` : "…"}
             {stats?.porDificultad
               ? ` · Fácil ${stats.porDificultad.facil ?? 0} · Media ${stats.porDificultad.media ?? 0} · Difícil ${stats.porDificultad.dificil ?? 0}`
-              : null}{" "}
-            · solo admin
+              : null}
           </p>
         </div>
         <Link href="/" className="text-sm text-indigo-400">
@@ -389,13 +399,9 @@ export default function AdminPreguntasPage() {
       ) : tab === "json" ? (
         <div className="space-y-3">
           <p className="text-xs text-slate-500">
-            Pega JSON con <code className="text-slate-400">materia</code>,{" "}
-            <code className="text-slate-400">contenido</code>,{" "}
-            <code className="text-slate-400">preguntasItems</code> y opcional{" "}
-            <code className="text-slate-400">dificultad</code> por ítem (
-            <code className="text-slate-400">facil</code>,{" "}
-            <code className="text-slate-400">media</code>,{" "}
-            <code className="text-slate-400">dificil</code>).
+            Un objeto con materia, contenido y preguntasItems, o un arreglo [ bloque1, bloque2 ]
+            con varios contextos. Dificultad: facil (o baja), media, dificil (o alta). El JSON
+            debe estar completo y cerrado (valida en jsonlint.com).
           </p>
           <textarea
             value={jsonTexto}

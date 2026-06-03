@@ -4,8 +4,8 @@ import {
   isAdminAuthorized,
   normalizarMateriaAdmin,
   normalizarDificultad,
+  parsearImportacionContextos,
   type ContextoImportInput,
-  validarPreguntaInput,
 } from "@/lib/admin/preguntas";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
@@ -17,64 +17,78 @@ export async function POST(req: NextRequest) {
   if (!isAdminAuthorized(req)) return adminUnauthorizedResponse();
 
   try {
-    const body = (await req.json()) as ContextoImportInput;
-
-    const materia = normalizarMateriaAdmin(body.materia);
-    if (!materia) {
-      return NextResponse.json({ error: "Materia inválida" }, { status: 400 });
-    }
-    if (!body.contenido?.trim()) {
-      return NextResponse.json({ error: "El contexto necesita contenido" }, { status: 400 });
-    }
-    if (!body.preguntasItems?.length) {
-      return NextResponse.json({ error: "Agrega al menos una pregunta" }, { status: 400 });
+    const body = await req.json();
+    let bloques: ContextoImportInput[];
+    try {
+      bloques = parsearImportacionContextos(body);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "JSON inválido";
+      return NextResponse.json({ error: msg }, { status: 400 });
     }
 
-    for (let i = 0; i < body.preguntasItems.length; i++) {
-      const err = validarPreguntaInput(body.preguntasItems[i]);
-      if (err) {
-        return NextResponse.json({ error: `Pregunta ${i + 1}: ${err}` }, { status: 400 });
-      }
-    }
+    const resultados = await prisma.$transaction(async (tx) => {
+      const creados: {
+        contextoId: string;
+        materia: string;
+        preguntas: number;
+      }[] = [];
 
-    const contexto = await prisma.contextoICFES.create({
-      data: {
-        materia,
-        titulo: body.titulo?.trim() || null,
-        contenido: body.contenido.trim(),
-      },
-    });
+      for (const bloque of bloques) {
+        const materia = normalizarMateriaAdmin(bloque.materia)!;
 
-    const creadas = await prisma.$transaction(
-      body.preguntasItems.map((p, idx) => {
-        const orden = p.orden ?? idx + 1;
-        return prisma.preguntaICFES.create({
+        const contexto = await tx.contextoICFES.create({
           data: {
             materia,
-            enunciado: p.enunciado.trim(),
-            opcionA: p.opcionA.trim(),
-            opcionB: p.opcionB.trim(),
-            opcionC: p.opcionC.trim(),
-            opcionD: p.opcionD.trim(),
-            correcta: p.correcta.trim().toUpperCase(),
-            explicacion: p.explicacion.trim(),
-            dificultad: normalizarDificultad(p.dificultad),
-            contextoId: contexto.id,
-            ordenEnContexto: orden,
+            titulo: bloque.titulo?.trim() || null,
+            contenido: bloque.contenido.trim(),
           },
-          select: { id: true, enunciado: true, ordenEnContexto: true },
         });
-      }),
-    );
+
+        const preguntas = await Promise.all(
+          bloque.preguntasItems.map((p, idx) => {
+            const orden = p.orden ?? idx + 1;
+            return tx.preguntaICFES.create({
+              data: {
+                materia,
+                enunciado: p.enunciado.trim(),
+                opcionA: p.opcionA.trim(),
+                opcionB: p.opcionB.trim(),
+                opcionC: p.opcionC.trim(),
+                opcionD: p.opcionD.trim(),
+                correcta: p.correcta.trim().toUpperCase(),
+                explicacion: p.explicacion.trim(),
+                dificultad: normalizarDificultad(p.dificultad),
+                contextoId: contexto.id,
+                ordenEnContexto: orden,
+              },
+              select: { id: true },
+            });
+          }),
+        );
+
+        creados.push({
+          contextoId: contexto.id,
+          materia,
+          preguntas: preguntas.length,
+        });
+      }
+
+      return creados;
+    });
 
     return NextResponse.json({
       ok: true,
-      contextoId: contexto.id,
-      preguntas: creadas,
+      importados: resultados.length,
+      contextos: resultados,
+      totalPreguntas: resultados.reduce((s, c) => s + c.preguntas, 0),
     });
   } catch (e) {
     console.error("[POST /api/admin/contextos]", e);
-    return NextResponse.json({ error: "Error al guardar contexto" }, { status: 500 });
+    const detail = e instanceof Error ? e.message : "Error desconocido";
+    return NextResponse.json(
+      { error: "Error al guardar contexto", detail },
+      { status: 500 },
+    );
   }
 }
 
