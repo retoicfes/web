@@ -5,7 +5,7 @@ export const siteConfig = {
   domain: "retoicfes.com",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://retoicfes.com",
   description:
-    "Simulacro Saber 11 gratis para grado 11° en Colombia. Practica preguntas tipo ICFES en Matemáticas, Lectura Crítica, Sociales, Ciencias e Inglés con retos rápidos y ranking por colegio.",
+    "Simulacro Saber 11 gratis para grado 11° en Colombia. Rondas de 15 preguntas (3 por área): Matemáticas, Lectura Crítica, Sociales, Ciencias e Inglés, con retos rápidos y ranking por colegio.",
   keywords: [
     "ICFES",
     "Saber 11",

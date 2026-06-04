@@ -71,7 +71,7 @@ function JugarContent() {
       setRondaToken(null);
       setLoading(true);
     } else if (getCompletedRound()) {
-      router.replace("/ranking");
+      router.replace("/");
       return;
     }
     fetch("/api/ronda/iniciar", {

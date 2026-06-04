@@ -15,6 +15,12 @@ export const MAX_INTENTOS_RONDA = 2;
 export const PUNTOS_POR_ACIERTO = 10;
 /** Tiempo máximo por pregunta antes de contar como fallo. */
 export const SEGUNDOS_POR_PREGUNTA = 60;
+
+/** Texto UI: «15 preguntas · …» (usa constantes de ronda, no hardcodear 10). */
+export function resumenPreguntasRonda(segundosPorItem = SEGUNDOS_POR_PREGUNTA): string {
+  return `${PREGUNTAS_POR_RONDA} preguntas · ${segundosPorItem} segundos por ítem`;
+}
+
 /** Últimos N segundos: reloj grande en centro + pitido por segundo. */
 export const SEGUNDOS_CUENTA_REGRESIVA = 15;
 /** Últimos N segundos: estilo rojo (barra, número, anillo). */

@@ -2,7 +2,12 @@
 
 import { HomeHero } from "@/components/home/HomeHero";
 import { ShareRetoButtons } from "@/components/share/ShareRetoButtons";
-import { MAX_INTENTOS_RONDA } from "@/lib/game";
+import {
+  MAX_INTENTOS_RONDA,
+  PREGUNTAS_POR_AREA_RONDA,
+  PREGUNTAS_POR_RONDA,
+  resumenPreguntasRonda,
+} from "@/lib/game";
 import {
   getCompletedRound,
   intentosRestantes,
@@ -19,30 +24,12 @@ type EstadoHome = {
   restantes: number;
 };
 
-export function HomePageClient() {
-  const [ready, setReady] = useState(false);
-  const [estado, setEstado] = useState<EstadoHome | null>(null);
-
-  useEffect(() => {
-    setEstado({
-      session: getPlayerSession(),
-      rondaCompleta: getCompletedRound(),
-      puedeJugar: puedeJugarOtraRonda(),
-      restantes: intentosRestantes(),
-    });
-    setReady(true);
-  }, []);
-
-  if (!ready || !estado) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <p className="text-slate-400">Cargando…</p>
-      </div>
-    );
-  }
-
-  const { session, rondaCompleta, puedeJugar, restantes } = estado;
-  const sinRondaTerminada = session && !rondaCompleta;
+function calcularCta(estado: EstadoHome | null) {
+  const session = estado?.session ?? null;
+  const rondaCompleta = estado?.rondaCompleta ?? null;
+  const puedeJugar = estado?.puedeJugar ?? true;
+  const restantes = estado?.restantes ?? MAX_INTENTOS_RONDA;
+  const sinRondaTerminada = Boolean(session && !rondaCompleta);
 
   let ctaHref = "/onboarding";
   let ctaLabel = "Empezar sin registro";
@@ -63,6 +50,36 @@ export function HomePageClient() {
       ctaLabel = `Intentos usados (${MAX_INTENTOS_RONDA}/${MAX_INTENTOS_RONDA})`;
     }
   }
+
+  return { session, rondaCompleta, puedeJugar, restantes, sinRondaTerminada, ctaHref, ctaLabel, ctaDeshabilitado };
+}
+
+/**
+ * Página principal: nunca redirige a ranking ni a jugar.
+ * La entrada a retoicfes.com debe mostrar siempre esta pantalla.
+ */
+export function HomePageClient() {
+  const [estado, setEstado] = useState<EstadoHome | null>(null);
+
+  useEffect(() => {
+    setEstado({
+      session: getPlayerSession(),
+      rondaCompleta: getCompletedRound(),
+      puedeJugar: puedeJugarOtraRonda(),
+      restantes: intentosRestantes(),
+    });
+  }, []);
+
+  const {
+    session,
+    rondaCompleta,
+    puedeJugar,
+    restantes,
+    sinRondaTerminada,
+    ctaHref,
+    ctaLabel,
+    ctaDeshabilitado,
+  } = calcularCta(estado);
 
   return (
     <div className="relative flex flex-1 flex-col justify-between overflow-hidden px-6 py-10">
@@ -94,8 +111,9 @@ export function HomePageClient() {
           <p className="text-slate-300">
             Reta a tu curso por WhatsApp y reta a otras instituciones 📱
           </p>
-          <p className="text-xs font-medium text-teal-300/90">
-            15 preguntas · 60 segundos por ítem
+          <p className="text-xs font-medium text-teal-300/90">{resumenPreguntasRonda()}</p>
+          <p className="text-[11px] text-slate-500">
+            {PREGUNTAS_POR_AREA_RONDA} ítems por área · {PREGUNTAS_POR_RONDA} en total
           </p>
           {session ? (
             <p className="text-xs text-slate-500">

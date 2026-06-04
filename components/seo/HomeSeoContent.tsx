@@ -7,7 +7,7 @@ const FAQ = [
   },
   {
     q: "¿Cuántas áreas del Saber 11 incluye?",
-    a: "Cada ronda mezcla ítems de Matemáticas, Lectura Crítica, Sociales y Ciencias Naturales, e Inglés, alineadas al enfoque del examen de Estado.",
+    a: "Cada ronda tiene 15 preguntas: 3 por área en Matemáticas, Lectura Crítica, Sociales y Ciencias Naturales, e Inglés, alineadas al enfoque del examen de Estado.",
   },
   {
     q: "¿Necesito registrarme con correo?",
@@ -39,6 +39,7 @@ export function HomeSeoContent() {
         <li>Simulacro ICFES tipo swipe en el celular</li>
         <li>Ranking por colegio, municipio y departamento</li>
         <li>Sin correo: apodo y establecimiento educativo</li>
+        <li>15 preguntas por ronda (3 por cada área del Saber 11)</li>
         <li>Preguntas con contexto cuando el ítem lo requiere</li>
       </ul>
 
