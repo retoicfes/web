@@ -35,9 +35,10 @@ NEXT_PUBLIC_GTM_ID=GTM-WS9J3TRR
 NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=xxxxxxxx
 # GA4 directo (si no usas solo GTM para GA)
 NEXT_PUBLIC_GA_MEASUREMENT_ID=G-53L2DLHYFF
+NEXT_PUBLIC_META_PIXEL_ID=3157959171071642
 ```
 
-**Evita doble conteo:** si GA4 está dentro de GTM, no actives también el gtag directo con el mismo ID.
+**Evita doble conteo:** si GA4 o Meta Pixel están también dentro de GTM, desactiva el tag duplicado en GTM o quita el script directo aquí.
 
 ## Checklist operativo (tú, fuera del código)
 
@@ -90,3 +91,4 @@ pnpm build
 | Speed Insights | `@vercel/speed-insights` |
 | GTM | `components/analytics/GoogleTagManager.tsx` |
 | GA4 | `components/analytics/GoogleAnalytics.tsx` |
+| Meta Pixel (retoicfespixel) | `components/analytics/MetaPixel.tsx` |
