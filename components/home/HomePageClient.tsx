@@ -95,7 +95,7 @@ export function HomePageClient() {
             Reta a tu curso por WhatsApp y reta a otras instituciones 📱
           </p>
           <p className="text-xs font-medium text-teal-300/90">
-            10 preguntas · 60 segundos por ítem
+            15 preguntas · 60 segundos por ítem
           </p>
           {session ? (
             <p className="text-xs text-slate-500">

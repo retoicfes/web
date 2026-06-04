@@ -1,8 +1,12 @@
 import { createHash } from "node:crypto";
+import { AREAS_ICFES } from "@/lib/icfes-puntaje";
 
-export const PREGUNTAS_POR_RONDA = 10;
-/** Ítems por área Saber 11 en cada ronda (5 áreas × 2 = 10). */
-export const PREGUNTAS_POR_AREA_RONDA = 2;
+/** Ítems por área Saber 11 en cada ronda. */
+export const PREGUNTAS_POR_AREA_RONDA = 3;
+/** Total por ronda (5 áreas × ítems por área). */
+export const PREGUNTAS_POR_RONDA = AREAS_ICFES.length * PREGUNTAS_POR_AREA_RONDA;
+/** Tiempo visible de la explicación tras responder (ms). */
+export const MS_FEEDBACK_EXPLICACION = 2000;
 /**
  * Rondas completas permitidas por dispositivo (localStorage).
  * Recomendado: 2 (1 intento + 1 repaso). Cambiar a 3 si quieres más práctica.

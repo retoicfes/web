@@ -9,7 +9,7 @@ Documento de amenazas y controles para el MVP. Objetivo: **dificultar trampas y 
 | **Puntaje falso en ranking** | Enviar `puntaje: 500` con curl/Postman | Calificación en servidor + `rankingToken` firmado (HMAC) |
 | **Ver respuestas en la red** | Leer `correcta` en `/api/preguntas` | Ronda vía `POST /api/ronda/iniciar` sin respuestas |
 | **Spam de rankings** | Miles de POST a `/api/rankings` | Rate limit por IP (60 s) |
-| **Ronda instantánea (bot)** | Responder 10 preguntas en 1 s | Mínimo ~2,5 s por pregunta al finalizar |
+| **Ronda instantánea (bot)** | Responder 15 preguntas en 1 s | Mínimo ~2,5 s por pregunta al finalizar |
 | **Colegio inventado** | Datos DANE falsos | Validación opcional contra tabla `establecimientos` |
 | **Apodo XSS** | Texto con `<script>` | Sanitización básica en servidor |
 | **Scraping del banco** | Descargar todas las preguntas | Límite por ronda; GET `/api/preguntas` deprecado (410) |

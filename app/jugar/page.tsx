@@ -5,6 +5,7 @@ import { QuestionCard } from "@/components/game/QuestionCard";
 import { MobileShell } from "@/components/ui/MobileShell";
 import type { ResultadoICFES } from "@/lib/icfes-puntaje";
 import {
+  MS_FEEDBACK_EXPLICACION,
   PREGUNTAS_POR_RONDA,
   SEGUNDOS_CUENTA_REGRESIVA,
   SEGUNDOS_POR_PREGUNTA,
@@ -171,7 +172,7 @@ function JugarContent() {
         setIndex(siguiente);
         setSegundosRestantes(SEGUNDOS_POR_PREGUNTA);
         setLocked(false);
-      }, 1400);
+      }, MS_FEEDBACK_EXPLICACION);
     },
     [index, preguntas.length, rondaToken, finalizar, router],
   );

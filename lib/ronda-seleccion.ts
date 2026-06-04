@@ -29,7 +29,7 @@ function elegirDelArea<T extends PreguntaSelectable>(
 }
 
 /**
- * 2 preguntas aleatorias por área (10 total), mezcladas al final.
+ * 3 preguntas aleatorias por área (15 total), mezcladas al final.
  * Cada llamada usa semilla criptográfica nueva → ronda distinta.
  */
 export function seleccionarPreguntasRonda<T extends PreguntaSelectable>(

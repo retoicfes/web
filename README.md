@@ -45,7 +45,7 @@ Plataforma móvil-first para practicar preguntas tipo Saber 11 con mecánica rá
 |------|----------|
 | `/` | Landing + CTA |
 | `/onboarding` | Apodo + Departamento → Municipio → Colegio (localStorage) |
-| `/jugar` | 10 preguntas, feedback, puntaje |
+| `/jugar` | 15 preguntas (3 por área), feedback, puntaje |
 | `/resultado` | Puntaje final + guardar en Postgres |
 | `/ranking` | Top por colegio / municipio / departamento |
 
