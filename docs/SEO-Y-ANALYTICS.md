@@ -53,6 +53,20 @@ Marca cuando esté hecho:
 - [ ] Core Web Vitals en Vercel Speed Insights (móvil)
 - [ ] Enlaces desde colegios / WhatsApp / redes (autoridad real)
 
+## Palabras clave objetivo (orgánico)
+
+Centralizadas en `lib/site.ts` e integradas en títulos, meta description, FAQ (JSON-LD) y texto SSR de la home.
+
+| Intención | Ejemplos de búsqueda |
+|-----------|----------------------|
+| Simulacro | simulacro icfes, simulacros saber 11, simulacro pruebas saber |
+| Prueba / examen | prueba saber 11, pruebas saber, examen icfes grado 11 |
+| Práctica gratis | icfes gratis, simulacro icfes gratis, icfes en línea |
+| Marca + retos | reto icfes, preguntas icfes, preguntas saber 11 |
+| Variante sin espacio | saber11 |
+
+**Siguiente salto de tráfico:** landings `/guia-saber-11` y `/simulacro-matematicas-icfes` (contenido largo indexable).
+
 ## Posicionamiento realista
 
 El **SEO técnico** del repo está alineado; **el primer puesto en Google** no se garantiza por código. Depende de:

@@ -4,10 +4,10 @@ import { pageMetadata } from "@/lib/seo";
 import { siteConfig } from "@/lib/site";
 
 export const metadata = pageMetadata({
-  title: "Simulacro Saber 11 Grado 11 Colombia",
+  title: siteConfig.homeTitle,
   description: siteConfig.description,
   path: "/",
-  ogTitle: `${siteConfig.name} | Practica Saber 11 gratis`,
+  ogTitle: siteConfig.ogTitle,
 });
 
 export default function HomePage() {

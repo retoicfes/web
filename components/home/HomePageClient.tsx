@@ -109,7 +109,7 @@ export function HomePageClient() {
             </span>
           </h1>
           <p className="text-slate-300">
-            Reta a tu curso por WhatsApp y reta a otras instituciones 📱
+            Simulacros ICFES y Pruebas Saber 11 · reta a tu curso por WhatsApp 📱
           </p>
           <p className="text-xs font-medium text-teal-300/90">{resumenPreguntasRonda()}</p>
           <p className="text-[11px] text-slate-500">

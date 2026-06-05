@@ -1,10 +1,11 @@
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
-  title: "Empezar simulacro Saber 11",
+  title: "Empezar simulacro ICFES Saber 11 gratis",
   description:
-    "Configura tu apodo y colegio (DANE) para jugar el simulacro Saber 11 gratis. Sin correo, listo en segundos.",
+    "Configura apodo y colegio (DANE) para tu simulacro de Pruebas Saber 11. Practica ICFES gratis, sin correo, en menos de un minuto.",
   path: "/onboarding",
+  ogTitle: "Simulacro ICFES Saber 11 gratis | Reto ICFES",
 });
 
 export default function OnboardingLayout({ children }: { children: React.ReactNode }) {

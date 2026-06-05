@@ -14,7 +14,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: `${siteConfig.name} | Simulacro Saber 11 Grado 11 Colombia`,
+    default: `${siteConfig.homeTitle} | ${siteConfig.name}`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
@@ -40,14 +40,14 @@ export const metadata: Metadata = {
     locale: siteConfig.locale,
     url: siteConfig.url,
     siteName: siteConfig.name,
-    title: `${siteConfig.name} | Practica Saber 11 gratis`,
+    title: siteConfig.ogTitle,
     description: siteConfig.description,
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: `${siteConfig.name} — Simulacro Saber 11`,
+        alt: `${siteConfig.name} — Simulacro ICFES y Saber 11 gratis`,
       },
     ],
   },
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
     : {}),
   twitter: {
     card: "summary_large_image",
-    title: siteConfig.name,
+    title: siteConfig.ogTitle,
     description: siteConfig.description,
     creator: siteConfig.twitter,
   },

@@ -27,13 +27,13 @@ export function buildShareTextBody(ctx: ShareRetoContext = {}): string {
   if (puntaje != null && puntaje > 0) {
     return (
       `🔥 ¡Saqué ${puntaje}/500 en Reto ICFES!\n\n` +
-      `Practica Saber 11 con retos tipo swipe y sube en el ranking de tu colegio.`
+      `Practica simulacros Saber 11 e ICFES con retos rápidos y sube en el ranking de tu colegio.`
     );
   }
 
   return (
-    `📚 ¿Listos para Saber 11?\n\n` +
-    `En Reto ICFES practicas con retos rápidos y compites con tu colegio.`
+    `📚 ¿Listos para las Pruebas Saber 11?\n\n` +
+    `Simulacro ICFES gratis: retos rápidos y ranking por colegio.`
   );
 }
 

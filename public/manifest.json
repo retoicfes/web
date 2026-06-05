@@ -1,7 +1,7 @@
 {
-  "name": "Reto ICFES — Saber 11",
+  "name": "Reto ICFES — Simulacro Saber 11",
   "short_name": "Reto ICFES",
-  "description": "Prepárate para Saber 11 con retos rápidos y ranking por colegio.",
+  "description": "Simulacro ICFES y Pruebas Saber 11 gratis. Practica grado 11° con ranking por colegio.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#020617",

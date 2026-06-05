@@ -23,10 +23,12 @@ export default function OpenGraphImage() {
           padding: 48,
         }}
       >
-        <div style={{ fontSize: 28, opacity: 0.9, marginBottom: 16 }}>Saber 11 · Colombia</div>
+        <div style={{ fontSize: 28, opacity: 0.9, marginBottom: 16 }}>
+          Simulacro ICFES · Pruebas Saber 11
+        </div>
         <div style={{ fontSize: 72, fontWeight: 800, letterSpacing: -2 }}>Reto ICFES</div>
         <div style={{ fontSize: 32, marginTop: 24, textAlign: "center", maxWidth: 900, opacity: 0.95 }}>
-          Practica grado 11° con retos rápidos y ranking por colegio
+          Simulacros Saber 11 gratis · grado 11° Colombia
         </div>
       </div>
     ),
