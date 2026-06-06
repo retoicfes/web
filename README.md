@@ -59,9 +59,10 @@ Plataforma móvil-first para practicar preguntas tipo Saber 11 con mecánica rá
 
 1. Importa el repo `retoicfes/web`.
 2. Framework: Next.js (detectado).
-3. Variables de entorno: `DATABASE_URL`, `DIRECT_URL` desde Vercel Postgres.
+3. Variables de entorno: ver [`DEPLOY-VERCEL.md`](./DEPLOY-VERCEL.md) (Production vs Preview).
 4. Build: `pnpm build` (incluye `prisma generate`).
-5. Tras el primer deploy, ejecuta en local contra prod o usa Vercel CLI:
+5. **Flujo recomendado:** rama + PR → preview automático → merge a `main` → producción.
+6. Tras el primer deploy, ejecuta en local contra prod o usa Vercel CLI:
    ```bash
    pnpm db:push
    pnpm db:seed

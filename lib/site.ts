@@ -1,9 +1,14 @@
+import { getPublicSiteUrl } from "@/lib/env";
+
 /** Configuración central del sitio (SEO, OG, sitemap). */
 export const siteConfig = {
   name: "Reto ICFES",
   shortName: "Reto ICFES",
   domain: "retoicfes.com",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://retoicfes.com",
+  /** URL del deployment actual (prod, preview o local). */
+  get url() {
+    return getPublicSiteUrl();
+  },
   description:
     "Simulacro ICFES y Pruebas Saber 11 gratis en Colombia. Preguntas tipo Saber 11 para grado 11°, ranking por colegio y retos rápidos en el celular.",
   /** Título SEO home (≤60 caracteres ideal). */
@@ -51,4 +56,4 @@ export const siteConfig = {
   locale: "es_CO",
   twitter: "@retoicfes",
   creator: "Reto ICFES",
-} as const;
+};

@@ -5,6 +5,7 @@ import {
 } from "@/components/analytics/GoogleTagManager";
 import { MetaPixel, MetaPixelNoScript } from "@/components/analytics/MetaPixel";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { isProductionDeployment, shouldEnableMarketingAnalytics } from "@/lib/env";
 import { siteConfig } from "@/lib/site";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -25,16 +26,18 @@ export const metadata: Metadata = {
   publisher: siteConfig.creator,
   category: "education",
   manifest: "/manifest.json",
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
+  robots: isProductionDeployment()
+    ? {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          "max-image-preview": "large",
+          "max-snippet": -1,
+        },
+      }
+    : { index: false, follow: false, noarchive: true },
   openGraph: {
     type: "website",
     locale: siteConfig.locale,
@@ -83,17 +86,27 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const marketingAnalytics = shouldEnableMarketingAnalytics();
+
   return (
     <html lang="es-CO">
       <head>
         <JsonLd />
-        <GoogleTagManager />
-        <GoogleAnalytics />
-        <MetaPixel />
+        {marketingAnalytics ? (
+          <>
+            <GoogleTagManager />
+            <GoogleAnalytics />
+            <MetaPixel />
+          </>
+        ) : null}
       </head>
       <body>
-        <GoogleTagManagerNoScript />
-        <MetaPixelNoScript />
+        {marketingAnalytics ? (
+          <>
+            <GoogleTagManagerNoScript />
+            <MetaPixelNoScript />
+          </>
+        ) : null}
         <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col safe-pt safe-pb">
           {children}
         </div>

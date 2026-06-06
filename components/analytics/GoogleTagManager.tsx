@@ -1,10 +1,11 @@
 import Script from "next/script";
+import { shouldEnableMarketingAnalytics } from "@/lib/env";
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 
 /** Google Tag Manager — configura tags (GA4, Ads, etc.) desde tagmanager.google.com */
 export function GoogleTagManager() {
-  if (!GTM_ID) return null;
+  if (!GTM_ID || !shouldEnableMarketingAnalytics()) return null;
 
   return (
     <Script id="google-tag-manager" strategy="afterInteractive">
@@ -20,7 +21,7 @@ export function GoogleTagManager() {
 }
 
 export function GoogleTagManagerNoScript() {
-  if (!GTM_ID) return null;
+  if (!GTM_ID || !shouldEnableMarketingAnalytics()) return null;
 
   return (
     <noscript>

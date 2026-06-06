@@ -1,4 +1,5 @@
 import Script from "next/script";
+import { shouldEnableMarketingAnalytics } from "@/lib/env";
 
 /** Pixel Meta — retoicfespixel (Events Manager). */
 const META_PIXEL_ID =
@@ -16,6 +17,7 @@ export function trackMetaEvent(
   event: string,
   params?: Record<string, unknown>,
 ): void {
+  if (!shouldEnableMarketingAnalytics()) return;
   if (typeof window === "undefined" || !window.fbq) return;
   if (params) {
     window.fbq("track", event, params);
@@ -25,7 +27,7 @@ export function trackMetaEvent(
 }
 
 export function MetaPixel() {
-  if (!META_PIXEL_ID) return null;
+  if (!META_PIXEL_ID || !shouldEnableMarketingAnalytics()) return null;
 
   return (
     <>
@@ -48,7 +50,7 @@ export function MetaPixel() {
 }
 
 export function MetaPixelNoScript() {
-  if (!META_PIXEL_ID) return null;
+  if (!META_PIXEL_ID || !shouldEnableMarketingAnalytics()) return null;
 
   return (
     <noscript>

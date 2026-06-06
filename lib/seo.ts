@@ -1,3 +1,4 @@
+import { isProductionDeployment } from "@/lib/env";
 import { siteConfig } from "@/lib/site";
 import type { Metadata } from "next";
 
@@ -27,12 +28,13 @@ export function pageMetadata({
 }: PageSeoInput): Metadata {
   const url = absoluteUrl(path);
   const ogImage = `${siteConfig.url.replace(/\/$/, "")}/opengraph-image`;
+  const allowIndex = index && isProductionDeployment();
 
   return {
     title,
     description,
     alternates: { canonical: path },
-    robots: index
+    robots: allowIndex
       ? { index: true, follow: true }
       : { index: false, follow: false, nocache: true },
     openGraph: {

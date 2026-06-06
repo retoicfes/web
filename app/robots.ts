@@ -1,7 +1,14 @@
+import { isProductionDeployment } from "@/lib/env";
 import { siteConfig } from "@/lib/site";
 import type { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
+  if (!isProductionDeployment()) {
+    return {
+      rules: { userAgent: "*", disallow: "/" },
+    };
+  }
+
   const base = siteConfig.url.replace(/\/$/, "");
   return {
     rules: {

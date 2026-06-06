@@ -5,6 +5,7 @@
 | Pieza | Archivo | Notas |
 |-------|---------|--------|
 | Config global | `lib/site.ts` | Nombre, URL, descripción, keywords |
+| Entorno deploy | `lib/env.ts` | Prod/preview, analytics, URL pública |
 | Metadatos por ruta | `lib/seo.ts` → `pageMetadata()` | Canonical, OG, Twitter, robots |
 | Layout raíz | `app/layout.tsx` | Defaults + GTM/GA + JSON-LD |
 | Home SSR + FAQ | `app/page.tsx`, `components/seo/HomeSeoContent.tsx` | Texto indexable + preguntas |
@@ -26,7 +27,9 @@
 - `/jugar`, `/resultado` — `noindex` + fuera del sitemap
 - `/admin/*` — privado
 
-## Variables en Vercel (Production)
+## Variables en Vercel
+
+### Production (analytics + SEO)
 
 ```env
 NEXT_PUBLIC_SITE_URL=https://retoicfes.com
@@ -37,6 +40,8 @@ NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=xxxxxxxx
 NEXT_PUBLIC_GA_MEASUREMENT_ID=G-53L2DLHYFF
 NEXT_PUBLIC_META_PIXEL_ID=3157959171071642
 ```
+
+Marca estas variables **solo en Production**. En Preview el código desactiva analytics y usa la URL `*.vercel.app` automáticamente (`lib/env.ts`).
 
 **Evita doble conteo:** si GA4 o Meta Pixel están también dentro de GTM, desactiva el tag duplicado en GTM o quita el script directo aquí.
 
